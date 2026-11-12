@@ -770,6 +770,245 @@ GAME.voices = [
 ];
 CHAPTERS.forEach(c => { c.events = (c.events || []).concat([{ on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }, { on: 'item:2', do: 'flicker', dur: 1.2 }]); });
 </script>
+<script id="patch-v3">// ================= PARCHE v3 · Loki: terror psicológico, más parejas, capítulos largos =================
+(function () {
+  const M2 = (m, at, x = {}) => Object.assign({ type: 'model', m, at }, x);
+  const F = (at, id, name, title, text, x = {}) => Object.assign({ type: 'folio', at, kind: 'inspect', id, name, read: { style: 'scroll', title, text }, text: [title ? '#' + title : '', ...text.slice(0, 6)] }, x);
+  const WF = (wall, at, id, name, title, text, x = {}) => Object.assign({ type: 'folio', wall, at, upright: true, w: 0.42, h: 0.56, paper: '#1a1208', ink: '#f2c860', glow: 0.35, font: '"Cinzel", serif', kind: 'inspect', id, name, read: { style: 'scroll', title, text }, text: ['#' + title, ...text.slice(0, 5)] }, x);
+  const byId = id => CHAPTERS.find(c => c.id === id);
+  const calm = evs => (evs || []).filter(e => !['figure', 'stinger', 'slam'].includes(e.do));
+
+  GAME.saveKey = 'loki-rooms-v3';
+  GAME.version = 'v2026.11.12 · fan game';
+  GAME.clockRate = 2.2;
+  GAME.advisory = 'Ponte auriculares. Juega a solas. Juega a oscuras.<br>Terror psicológico: no hay sustos de golpe. Hay cosas peores. Contiene muerte, sangre y luces que parpadean.';
+  GAME.menuDesc.start = 'A medianoche, Thanos matará a Loki. Tienes dos horas, un móvil midgardiano y lo que te enseñó Frigga. Seis salas. Y en algún archivo de la TVA, todas las veces que ya lo has intentado.';
+  GAME.partnerText = 'Eres una persona corriente de Midgard: ni magia ni sangre real. Solo alguien a quien un dios quiere. Thanos lo sabe, y te ha usado de cebo. Tu pareja te guiará por el móvil; pulsa H o «?» cuando te atasques. Pero en esta noche hay ilusiones, y las ilusiones también saben escribir mensajes.';
+  GAME.presence = [
+    'El móvil vibra. Un mensaje tuyo, enviado hace una hora: «No vengas». No lo escribiste.',
+    'Hueles a la colonia de Loki. A cuero, a invierno. No hay nadie.',
+    'Alguien ha dicho tu nombre muy cerca, con la voz de Frigga. Frigga murió hace años.',
+    'Te miras las manos. Por un instante, la piel se te pone azul. Luego ya no.',
+    'Cuentas los minutos que faltan. Te sale un número distinto cada vez.',
+    'Recuerdas esta sala. No has estado nunca aquí. La recuerdas igual.'
+  ];
+  GAME.partners.push(
+    { id: 'mobius', name: 'Mobius', rel: 'agente de la TVA', pet: 'variante', color: '#c9a24a', desc: 'Bigote, café frío y una paciencia infinita. Te habla desde un despacho de la TVA donde el tiempo no pasa. Dice que ya ha visto esta noche. Muchas veces.', helpIntro: ['A ver, variante, ya lo he visto:', 'Te lo cuento como a un amigo:', 'Mira, esto es lo que pasa:'], offer: ['Llevas un rato parada. En las otras versiones también. ¿Te ayudo?', 'Variante, ¿quieres una pista o un café?'] },
+    { id: 'heimdall', name: 'Heimdall', rel: 'guardián del Bifrost', pet: 'pequeña luz', color: '#ffb84a', desc: 'Lo ve todo. A ti también: cada respiración, cada duda. Te guía desde lo que queda del Bifrost, con la espada clavada en el suelo.', helpIntro: ['Lo veo, pequeña luz:', 'Desde aquí se ve claro:', 'Escucha:'], offer: ['Te veo dudar. ¿Quieres que mire por ti?', 'Pequeña luz, llevas un rato quieta. ¿Te ayudo?'] }
+  );
+  GAME.achievements.push(
+    { id: 'lock_any', icon: '🗝️', name: 'Bajo llave', hint: 'Abre algo que alguien cerró para ti.' },
+    { id: 'cap_sakaar', icon: '🎉', name: 'Fin de la fiesta', hint: 'Sal del palacio del Gran Maestro.' },
+    { id: 'cap_tva', icon: '⏳', name: 'Rama podada', hint: 'Sal de la TVA.' },
+    { id: 'code_sakaar', icon: '🏆', name: 'Veintitrés y una', hint: 'Abre la puerta de servicio de Sakaar.' },
+    { id: 'code_tva', icon: '🛗', name: 'Las 23:17', hint: 'Coge el ascensor temporal.' },
+    { id: 'variante', icon: '📁', name: 'Todas las veces', hint: 'Lee tu expediente de variante.' },
+    { id: 'gaslight', icon: '📱', name: 'Yo no te he escrito', hint: 'Recibe un mensaje de tu pareja que nunca envió.' }
+  );
+
+  // ---------- I · La Bóveda ----------
+  let C = byId('aposentos');
+  C.room.objects.push(
+    WF('e', [0, 1.75, 0.95], 'inscripcion', 'Inscripción en la pared', 'Lo que Odín guardó', ['Ojos que conservó: 1', 'Hijos que tuvo: 3', 'Hijos que reconoció: 2', '', 'El cofre de las cartas', 'se abre con su verdad.']),
+    M2('treasure_chest', [-1.4, 0, 2.05], { rot: Math.PI, s: 0.85, kind: 'lock', id: 'cofreOdin', name: 'Cofre de cartas de Odín (tres cifras)', focusY: 0.6, code: '132', codeTitle: 'Cofre de Odín · tres runas', hint: 'La inscripción de la pared: un ojo, tres hijos, dos reconocidos. 1, 3, 2.', lines: [['Tú', 'Dentro hay cartas de Odín que nunca envió. Y una, encima de todas, con mi nombre en la letra de Frigga.']] }),
+    { type: 'item', at: [-1.4, 0.55, 1.75], shape: 'paper', color: 0xe8dcc0, kind: 'item', sealed: true, sealedBy: 'cofreOdin', name: 'Carta de Frigga para ti', lines: [['Tú', '«Querida mortal: gracias por cuidar de mi hijo cuando yo ya no pude.»'], ['Tú', 'Frigga murió hace años. La carta está fechada mañana.'], ['Tú', 'Al final, con otra tinta: «No confíes en ninguna voz que te diga que te des prisa. Ni siquiera en la mía.»']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:40', do: 'presence', text: 'En el tapiz, alguien ha bordado una figura nueva junto a Loki. Tiene tu pelo.' },
+    { on: 'look:tapiz', do: 'rewrite', id: 'tapiz', delay: 15, lines: [['Tú', 'Vuelvo a mirar el tapiz. Odín, Frigga, Thor, Loki… y un hueco donde antes juraría que había otro nombre.'], ['Tú', 'El hilo negro ya no dice HELA. No dice nada. ¿Lo leí de verdad?']] },
+    { on: 't:80', do: 'say', lines: [['{p} (móvil)', 'Rápido. Deja las cartas. No hace falta que lo leas todo. Sal ya.']] },
+    { on: 't:105', do: 'say', lines: [['{p} (móvil)', 'Perdona, me había quedado sin batería. ¿Has encontrado algo? ¿Por qué me dices que te he escrito? Yo no te he escrito nada.']] },
+    { on: 'lock:cofreOdin', do: 'heartbeat', n: 5, text: 'Mañana. La carta es de mañana.' }
+  ]);
+
+  // ---------- II · El Sanctum ----------
+  C = byId('sanctum'); C.time = '22:25';
+  C.room.objects.push(
+    WF('s', [-1.2, 1.55], 'ficha', 'Ficha de la biblioteca', 'Biblioteca · reliquias', ['Caja de reliquias:', 'sección 3,', 'estante 1,', 'libro 6.', '', '— W.'], { paper: '#f2ece0', ink: '#2a1a10', glow: 0 }),
+    M2('GothicCabinet_01', [2.65, 0, -1.45], { rot: -Math.PI / 2, s: 0.75, kind: 'lock', id: 'reliquias', name: 'Caja de reliquias (tres cifras)', focusY: 1.0, code: '316', codeTitle: 'Caja de reliquias · tres runas', hint: 'La ficha de la biblioteca de la pared sur: sección 3, estante 1, libro 6.', lines: [['Tú', 'Un lienzo enrollado, muy viejo, con el sello del Sanctum.']] }),
+    { type: 'item', at: [2.2, 0.9, -1.45], shape: 'paper', color: 0xd8c8a8, kind: 'item', sealed: true, sealedBy: 'reliquias', name: 'Retrato de hace cien años', lines: [['Tú', 'Un retrato al óleo, firmado en 1926. Una mujer en esta misma biblioteca, con un móvil en la mano.'], ['Tú', 'Soy yo. Con la ropa que llevo esta noche.'], ['Tú', 'En el reverso: «Llegó por el portal. Preguntaba la hora. Se fue sin saberla.»']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:35', do: 'presence', text: 'Un libro de la estantería tiene tu nombre en el lomo. No lo abres. No quieres saber cómo acaba.' },
+    { on: 'item:2', do: 'presence', delay: 3, text: 'Desde las escaleras, alguien te llama con la voz de {p}. Thor dijo que no contestaras.' },
+    { on: 'lock:reliquias', do: 'heartbeat', n: 5 }
+  ]);
+
+  // ---------- III (nuevo) · Sakaar ----------
+  const SAK = {
+    id: 'sakaar', num: 'III', time: '22:45', title: 'La fiesta del Gran Maestro', place: 'Sakaar · Palacio del Gran Maestro', loading: 'Cayendo por un agujero de gusano…',
+    epigraph: '«En Sakaar nadie se va de la fiesta. Simplemente, un día dejan de estar en ella.»',
+    room: { w: 6.4, d: 5.6, h: 3.6, wallTex: { id: 'white_stucco', s: 2, tint: 0xd8a8e8 }, floorTex: { id: 'herringbone_parquet', s: 1.6, tint: 0xb0a0c0 }, ceilTex: { id: 'white_stucco', s: 2, tint: 0x6a4a7a }, skirt: 0x3a1a4a, shadowFrom: 'main', fog: 0x140a1c, fogDensity: 0.035, sky: 0xc070ff, ground: 0x0a0410, ambient: 0.45, motes: 0xff9aff, objects: [
+      M2('Chandelier_02', [0, 3.6, 0], { id: 'main', hang: true, s: 1.0, light: { c: 0xffb0ff, i: 1.1, y: -0.7, d: 11, bulb: false } }),
+      M2('WoodenTable_03', [0, 0, -2.25], { s: [1.6, 0.95, 1.1], tint: 0x6a3a7a }),
+      M2('wine_bottles_01', [-0.7, 0.79, -2.3], { solid: false }), M2('brass_goblets', [0.75, 0.79, -2.2], { s: 0.6, solid: false }),
+      M2('strawberry_chocolate_cake', [0.2, 0.79, -2.35], { solid: false }),
+      M2('sofa_02', [-2.6, 0, 0.3], { rot: Math.PI / 2, tint: 0xc070c0 }),
+      M2('ArmChair_01', [-1.2, 0, 1.9], { rot: Math.PI - 0.5, tint: 0xd090ff, solid: false }),
+      M2('tea_set_01', [-2.0, 0, -1.9], { s: 0.9, solid: false }),
+      { type: 'phone', at: [-0.2, 0.79, -2.0], kind: 'phone', name: 'Móvil midgardiano' },
+      { type: 'window', wall: 'n', at: [-2.0, 2.1], w: 1.4, h: 1.2, view: 'space', frame: 0x8a3aaa, light: 0xff9aff },
+      { type: 'frame', wall: 'e', at: [0, 1.85, -0.7], w: 1.1, h: 0.85, text: ['#CAMPEONES', 'Hulk ......... 23', 'Korg ........... 0', 'La mortal ..... 1'], textOpt: { bg: '#2a0a3a', color: '#ffd23a', size: 40, big: 48 }, kind: 'inspect', id: 'marcador', name: 'Marcador de campeones', focusY: 1.85, dist: 1.0, lines: [['Tú', 'Mi nombre está en el marcador. «La mortal: 1 victoria».'], ['Tú', 'No recuerdo haber luchado. No recuerdo haber ganado. Me duelen los nudillos.']] },
+      { type: 'frame', wall: 'n', at: [1.9, 1.95], w: 1.0, h: 1.2, art: 'portrait', frameColor: 0xffd23a, kind: 'inspect', id: 'retratoGM', name: 'Retrato del Gran Maestro', focusY: 1.95, dist: 1.0, lines: [['Tú', 'El Gran Maestro, sonriendo como un tío que sabe dónde has enterrado algo. Una placa dorada:'], ['Tú', '«509 fiestas sin una sola baja.» Debajo, más pequeño: «Las bajas no cuentan».']] },
+      F([0.65, 0.792, -2.0], 'topaz', 'Nota de Topaz', 'Puerta de servicio', ['Se abre con las victorias del Campeón', 'y después las de la mortal.', 'Nada de sumar. Nada de pensar.', '', '— Topaz'], { paper: '#2a0a3a', ink: '#ff9aff', glow: 0.3 }),
+      M2('treasure_chest', [2.5, 0, 1.9], { rot: -Math.PI / 2 - 0.4, s: 0.85, tint: 0xffc0ff, kind: 'lock', id: 'premios', name: 'Cofre de premios (tres cifras)', focusY: 0.6, code: '509', codeTitle: 'Cofre de premios · tres runas', hint: 'La placa del retrato del Gran Maestro: 509 fiestas.', lines: [['Tú', 'Premios. Collares, medallas, un casco con plumas. Y un contrato enrollado con un lazo.']] }),
+      { type: 'item', at: [2.2, 0.55, 1.75], shape: 'paper', color: 0xffe8a0, kind: 'item', sealed: true, sealedBy: 'premios', name: 'Tu contrato de campeona', lines: [['Tú', '«La abajo firmante acepta luchar para el Gran Maestro hasta que deje de ser divertido.»'], ['Tú', 'Firmado con mi letra. Fecha: hace dos años.'], ['Tú', 'Hace dos años yo estaba en Midgard. En mi trabajo. En mi casa. ¿Verdad?']] },
+      { type: 'item', at: [-0.65, 0.85, -2.05], shape: 'ring', color: 0xff3a9a, kind: 'item', name: 'Disco de obediencia', lines: [['Tú', 'Un disco pequeño, de los que se pegan al cuello. Si alguien aprieta el mando, duele.'], ['Eco de Loki', 'A mí no me lo pusieron. Yo fui invitado. Hay una diferencia. Creo.']] },
+      { type: 'item', at: [-2.4, 0.5, 0.9], shape: 'cup', color: 0xffd23a, kind: 'item', name: 'Copa de la Gran Fiesta', lines: [['Tú', 'Una copa dorada, todavía con líquido. Está tibio. La fiesta acabó hace meses.'], ['Tú', 'En el borde hay marcas de pintalabios. De mi color.']] },
+      { type: 'item', at: [-1.0, 0.45, 1.6], shape: 'paper', color: 0xf2f2f2, kind: 'item', name: 'Nota de Loki: «Hice amigos»', lines: [['Eco de Loki', 'Hermano: aquí me adoran. Literalmente. Me he hecho amigo del que manda. Nadie me ha intentado matar en tres semanas. Es un récord.'], ['Tú', 'Al final, con otra letra: «Él siempre se queda donde le aplauden. Tú no te quedes».']] },
+      { type: 'item', at: [1.4, 0.12, 0.6], shape: 'gem', color: 0xffd23a, kind: 'item', name: 'Medalla de campeona', lines: [['Tú', 'Una medalla dorada con mi nombre grabado. Bien escrito. Con mi segundo apellido, que no le digo a nadie.']] },
+      { type: 'item', at: [1.9, 0.12, 0.9], shape: 'gem', color: 0xffd23a, kind: 'item', fake: true, name: 'Medalla de campeona' },
+      { type: 'graffiti', wall: 'w', at: [0, 2.3, -1.4], w: 1.6, hidden: true, text: ['NO TE', 'QUEDES'], color: '#3aff9a', size: 100 },
+      { type: 'rug', at: [0, 0, 0.2], w: 3.0, d: 2.2, color: 0x5a1a6a },
+      { type: 'door', wall: 's', at: [1.5, 0], code: true, kind: 'door', name: 'Puerta de servicio', color: 0x3a1a4a, focusY: 1.2, tex: 'dark_wooden_planks', tint: 0xb070c0 }
+    ] },
+    start: { at: [0, -0.6], yaw: 0 },
+    objective: 'Sigue el rastro de Loki por la fiesta',
+    code: '231', codeTitle: 'Puerta de servicio · tres runas', codeObjective: 'Abre la puerta de servicio (nota de Topaz y marcador)',
+    codeFamily: 'Loki: «Veintitrés del gigante verde, una tuya. 231. Topaz odia las sumas».',
+    intro: [['Tú', 'Un salón enorme, lleno de luces de colores. La música sigue sonando. No hay nadie bailando.'], ['Tú', 'Confeti en el suelo. Confeti en mi pelo. No recuerdo la fiesta.'], ['SISTEMA', 'Recoge el rastro de Loki, abre el cofre de premios y la puerta de servicio. Q: móvil. F: ilusión de Frigga.']],
+    allFound: [['Tú', 'El disco, la copa, la nota, la medalla, el contrato. Loki estuvo aquí. Yo también, por lo visto.'], ['Tú', 'La puerta de servicio: lo que dice la nota de Topaz y el marcador.']],
+    locked: 'Aún hay rastro de Loki en esta fiesta.',
+    events: [
+      { on: 't:12', do: 'presence', text: 'La música repite el mismo compás. Una y otra vez. Desde que has entrado.' },
+      { on: 'item:1', do: 'say', lines: [['Voz del Gran Maestro (por megafonía)', '¡Nuestra campeona ha vuelto! ¡Aplausos! ¡Más fuerte! Nadie aplaude. Bueno, da igual.']] },
+      { on: 't:50', do: 'say', lines: [['{p} (móvil)', 'Quédate a la fiesta un rato. Te lo has ganado. Yo llego enseguida.']] },
+      { on: 't:85', do: 'say', lines: [['{p} (móvil)', '¿Fiesta? Sakaar lleva meses vacío. Yo no te he escrito eso. Sal de ahí ya.']] },
+      { on: 't:86', do: 'drain', dmg: 5 },
+      { on: 'look:marcador', do: 'presence', delay: 4, text: 'Te miras los nudillos. Tienen costras viejas. Muy viejas.' },
+      { on: 'lock:premios', do: 'heartbeat', n: 6, text: 'Hace dos años. Tu letra. No puede ser.' },
+      { on: 'found', do: 'flicker', dur: 2 },
+      { on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }
+    ],
+    phone: [
+      { on: 'start', from: 'Thor', delay: 3, msgs: ['¿Sakaar?', 'Allí me cortaron el pelo. Y me hicieron luchar contra mi amigo.', 'Si alguien te ofrece quedarte, di que no. Aunque sea muy amable. Sobre todo si es muy amable.'] },
+      { on: 'item:2', from: 'Desconocido', msgs: ['¿Te gusta tu medalla?', 'Te la ganaste. No te acuerdas, pero te la ganaste.', 'A Loki tampoco le gustaba acordarse de las cosas.'] }
+    ],
+    exitName: 'Puerta de servicio'
+  };
+
+  // ---------- IV · La sala de tortura ----------
+  C = byId('tortura'); C.num = 'IV'; C.time = '23:05';
+  C.room.objects.push(
+    F([0.65, 0.913, -2.05], 'notaTaq', 'Nota en la mesa', 'Taquilla de Fauces', ['La taquilla se abre con las piezas', 'que le cambiaron a Nebula.', '', 'Está en su expediente.', 'Siempre en su expediente.'], { paper: '#2a1a1a', ink: '#c8a0a0', glow: 0.2 }),
+    M2('metal_tool_chest', [-2.85, 0, -1.6], { rot: Math.PI / 2, s: 0.8, tint: 0x6a5a6a, kind: 'lock', id: 'taquillaF', name: 'Taquilla de Fauces de Ébano (dos cifras)', focusY: 0.8, code: '23', codeTitle: 'Taquilla · dos runas', hint: 'El expediente de Nebula en el pergamino sellado: 23 modificaciones.', lines: [['Tú', 'Una grabadora. Un solo archivo. Se titula con la hora de esta noche.']] }),
+    { type: 'item', at: [-2.5, 0.6, -1.6], shape: 'box', color: 0x2a2a2a, kind: 'item', sealed: true, sealedBy: 'taquillaF', name: 'Grabación de un interrogatorio', lines: [['Tú', '(Le doy al botón.) Una voz grave pregunta a Loki dónde está el Teseracto. Loki se ríe. Silencio.'], ['Tú', 'Y entonces se oye otra voz. Tranquila. Clara: «Está en la nave de refugiados. Cubierta C».'], ['Tú', 'Es mi voz. No lo he dicho nunca. No he estado nunca aquí. Lo he dicho.']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:45', do: 'presence', text: 'Una de las sábanas tiene tu silueta. Exacta. No la levantas.' },
+    { on: 'lock:taquillaF', do: 'heartbeat', n: 7, text: 'Fuiste tú. Fuiste tú quien lo dijo.' },
+    { on: 'lock:taquillaF', do: 'drain', dmg: 8, delay: 2 }
+  ]);
+
+  // ---------- V (nuevo) · La TVA ----------
+  const TVA = {
+    id: 'tva', num: 'V', time: '23:20', title: 'La Autoridad de Variación Temporal', place: 'Fuera del tiempo · Archivo de la TVA', loading: 'Saliendo del tiempo…',
+    epigraph: '«En la TVA no hay relojes que funcionen. Ni falta que hace: aquí todo lo que pasa ya ha pasado.»',
+    room: { w: 6.0, d: 5.4, h: 3.2, wallTex: { id: 'concrete_wall_004', s: 2.4, tint: 0xc8a878 }, floorTex: { id: 'concrete_floor_painted', s: 2.5, tint: 0x8a7a5a }, ceilTex: { id: 'white_stucco', s: 2, tint: 0x7a6a50 }, skirt: 0x3a2a1a, shadowFrom: 'main', fog: 0x14100a, fogDensity: 0.04, sky: 0xd8b070, ground: 0x0a0804, ambient: 0.4, motes: 0xffe0a0, objects: [
+      M2('modern_ceiling_lamp_01', [0, 3.2, -0.4], { id: 'main', hang: true, s: 0.9, light: { c: 0xffe0a0, i: 1.1, y: -0.4, d: 10 } }),
+      M2('metal_office_desk', [0, 0, -2.0], { s: 1.0, tint: 0x8a7a5a }),
+      M2('dining_chair_02', [0, 0, -1.1], { rot: Math.PI, solid: false, tint: 0x8a6a4a }),
+      M2('desk_lamp_arm_01', [-0.7, 0.75, -2.15], { kind: 'light', name: 'Apagar / encender el flexo', light: { c: 0xffe0a0, i: 0.8, y: 0.62, z: 0.22, d: 4, bulb: false }, focusY: 1.0 }),
+      M2('steel_frame_shelves_02', [-2.7, 0, -0.8], { rot: Math.PI / 2, tint: 0xa08a6a }),
+      M2('steel_frame_shelves_02', [-2.7, 0, 1.2], { rot: Math.PI / 2, tint: 0xa08a6a }),
+      M2('book_encyclopedia_set_01', [-2.7, 1.15, -0.8], { rot: Math.PI / 2, solid: false }), M2('book_encyclopedia_set_01', [-2.7, 0.4, 1.2], { rot: Math.PI / 2, solid: false }),
+      M2('alarm_clock_01', [0.5, 0.75, -2.05], { s: 1.1, kind: 'inspect', id: 'relojes', name: 'Reloj de la mesa', sound: { kind: 'clock', groups: [2, 3, 1, 7], gap: 0.35, pause: 1.1 }, lines: [['', '[ tic tic · tic tic tic · tic · tic tic tic tic tic tic tic ]'], ['Tú', 'Marca las 23:17. Todos los relojes de la sala marcan las 23:17. El mío también.']], dist: 0.5 }),
+      M2('mantel_clock_01', [-2.7, 1.9, 1.2], { rot: Math.PI / 2, solid: false }),
+      { type: 'phone', at: [0.2, 0.75, -1.7], kind: 'phone', name: 'Móvil midgardiano' },
+      { type: 'frame', wall: 'n', at: [-1.7, 1.95], w: 1.1, h: 0.75, text: ['#RAMA PODADA', 'Hora: 23:17', 'Variante: la mortal', 'Motivo: llegó a tiempo'], textOpt: { bg: '#e8d8b0', color: '#3a2a10', size: 40, big: 46 }, kind: 'inspect', id: 'cartelPoda', name: 'Aviso de poda', focusY: 1.95, dist: 1.0, lines: [['Tú', '«Motivo de la poda: llegó a tiempo».'], ['Tú', 'Llegar a tiempo es un error. En la TVA, salvar a alguien es un error.']] },
+      F([-0.25, 0.752, -1.7], 'manual', 'Manual del agente', 'Ascensor temporal', ['El ascensor se abre con la hora', 'de la última poda, en cuatro cifras.', '', 'Si la variante pregunta cuántas veces', 'ha estado aquí, no contestar.']),
+      { type: 'item', at: [0.75, 0.8, -1.75], shape: 'cup', color: 0xf2f2f2, kind: 'inspect', id: 'taza', name: 'Taza de café de Mobius', lines: [['Tú', 'Una taza fría. Pone «MOBIUS» con rotulador. Debajo, una cuenta con rayitas: «cafés esta semana: 42».'], ['Tú', 'Una semana. Aquí no hay semanas. Alguien lleva la cuenta igual.']] },
+      M2('metal_tool_chest', [2.6, 0, -1.0], { rot: -Math.PI / 2, s: 0.85, tint: 0xa08a6a, kind: 'lock', id: 'variantes', name: 'Archivador de variantes (dos cifras)', focusY: 0.85, code: '42', codeTitle: 'Archivador · dos runas', hint: 'La taza de Mobius: 42 cafés.', lines: [['Tú', 'Carpetas. Miles. Todas con el mismo nombre. El mío.']] }),
+      { type: 'item', at: [2.25, 0.6, -1.0], shape: 'book', color: 0xd8b070, kind: 'item', sealed: true, sealedBy: 'variantes', ach: 'variante', name: 'Tu expediente de variante', lines: [['Tú', 'Cientos de versiones de esta noche. En la 1, llego tarde. En la 2, llego tarde. En la 340, me rindo en la Bóveda.'], ['Tú', 'En todas, Loki muere a medianoche.'], ['Tú', 'Solo una carpeta está marcada a lápiz: «En esta no hay nadie esperándola. Ni Loki, ni {p}. Nunca existieron». La cierro.']] },
+      { type: 'item', at: [-0.6, 0.8, -1.9], shape: 'dagger', color: 0xffa040, kind: 'item', name: 'Bastón de reinicio', lines: [['Tú', 'Un bastón naranja que zumba. Con él, la TVA borra a la gente. No la mata: la deshace.'], ['Eco de Mobius', 'Lo más difícil no es podar. Es que luego nadie se acuerda de lo que podaste. Ni tú.']] },
+      { type: 'item', at: [-2.4, 0.95, -0.6], shape: 'book', color: 0x3aff9a, kind: 'item', name: 'Expediente de Loki', lines: [['Tú', 'Una carpeta gruesa. Cada página, una variante de Loki. Todas terminan igual: alguien llega tarde.'], ['Eco de Loki', 'Gloriosa colección. Fallé de mil maneras distintas. Eso también es talento.']] },
+      { type: 'item', at: [1.2, 0.03, 1.4], shape: 'paper', color: 0xe8d8b0, kind: 'item', name: 'Folleto de bienvenida', lines: [['Tú', '«¡Bienvenida a la TVA! Si estás leyendo esto, eres una variante. No te preocupes: no dolerá.»'], ['Tú', 'Alguien ha escrito en el margen, con mi letra: «Sí duele. Sal por el ascensor».']] },
+      { type: 'item', at: [-2.3, 0.4, 1.8], shape: 'ring', color: 0xd8b070, kind: 'item', hidden: true, name: 'Reloj de pulsera parado', lines: [['Tú', 'A oscuras brilla un reloj en el suelo. Es el mío. Lo llevo puesto. Lo miro: lo sigo llevando puesto.'], ['Tú', 'Hay dos. Uno en mi muñeca y otro aquí. Los dos marcan las 23:17.']] },
+      { type: 'graffiti', wall: 'e', at: [0, 2.0, 1.0], w: 1.8, hidden: true, text: ['YA HAS', 'ESTADO AQUÍ'], color: '#ffa040', size: 90 },
+      { type: 'door', wall: 's', at: [1.4, 0], code: true, kind: 'door', name: 'Ascensor temporal', color: 0x6a5a3a, focusY: 1.2, tex: 'metal_plate', tint: 0xc8a878 }
+    ] },
+    start: { at: [0, 0.4], yaw: 0 },
+    objective: 'Descubre qué sabe la TVA de esta noche',
+    code: '2317', codeTitle: 'Ascensor temporal · cuatro runas', codeObjective: 'Abre el ascensor (la hora de la última poda)',
+    codeFamily: 'Loki: «Dos, tres, uno, siete. Las 23:17. Esa gente adora sus horas redondas que no son redondas».',
+    intro: [['Tú', 'Un despacho marrón, sin ventanas, sin fin. Huele a café frío y a papel.'], ['Tú', 'He estado aquí. Sé dónde está el interruptor antes de buscarlo.'], ['SISTEMA', 'Recoge lo que la TVA sabe de esta noche, abre el archivador y coge el ascensor temporal.']],
+    allFound: [['Tú', 'El bastón, los expedientes, el folleto, mi reloj. Todo dice lo mismo: esto ya ha pasado.'], ['Tú', 'El ascensor: la hora de la última poda.']],
+    locked: 'Aún no. La TVA guarda más de mí de lo que quiero saber.',
+    events: [
+      { on: 't:8', do: 'presence', text: 'Por megafonía, una voz alegre repite: «Recuerde: todo lo que está a punto de hacer ya lo ha hecho».' },
+      { on: 't:40', do: 'say', lines: [['{p} (móvil)', 'Escúchame. Ya hemos tenido esta conversación. No cojas el bastón.']] },
+      { on: 't:90', do: 'say', lines: [['{p} (móvil)', 'Escúchame. Ya hemos tenido esta conversación. No cojas el bastón.'], ['Tú', 'Me lo acabas de decir. Igual. Palabra por palabra.'], ['{p} (móvil)', '¿El qué? Yo no te he escrito nada. Acabo de coger el móvil.']] },
+      { on: 't:92', do: 'drain', dmg: 6 },
+      { on: 'look:relojes', do: 'presence', delay: 5, text: 'Miras la hora en tu móvil: 23:17. Lo vuelves a mirar: 23:17. Lo vuelves a mirar.' },
+      { on: 'lock:variantes', do: 'heartbeat', n: 7, text: 'Nunca existieron. Una de esas carpetas dice que nunca existieron.' },
+      { on: 'dark', do: 'presence', delay: 2, text: 'A oscuras, el zumbido del bastón suena como tu nombre dicho muy despacio.' },
+      { on: 'found', do: 'flicker', dur: 2.5 },
+      { on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }
+    ],
+    phone: [
+      { on: 'start', from: 'Desconocido', delay: 3, msgs: ['Bienvenida de nuevo.', '¿Cuántas van? Yo he perdido la cuenta. Ellos no.'] },
+      { on: 'item:1', from: 'Thor', msgs: ['¿Dónde estás? Heimdall dice que no te ve. Que no estás en ningún sitio.', 'Eso no es posible. Todo el mundo está en algún sitio.'] }
+    ],
+    exitName: 'Ascensor temporal'
+  };
+
+  // ---------- VI · La Statesman (final) ----------
+  C = byId('statesman'); C.num = 'VI'; C.time = '23:40';
+  C.room.objects.push(
+    WF('e', [0, 1.6, 0.55], 'pasajeros', 'Lista de pasajeros', 'Pasajeros · cubierta C', ['Heimdall: cubierta 4,', 'camarote 07.', 'Su arcón: cubierta y camarote.', '', 'Pasajera sin registrar:', 'la mortal. Camarote: ninguno.']),
+    M2('treasure_chest', [-0.9, 0, 2.05], { rot: Math.PI, s: 0.8, tint: 0x8a8aa0, kind: 'lock', id: 'arcon', name: 'Arcón de Heimdall (tres cifras)', focusY: 0.6, code: '407', codeTitle: 'Arcón de Heimdall · tres runas', hint: 'La lista de pasajeros de la pared: cubierta 4, camarote 07.', lines: [['Tú', 'Dentro hay una manta, una espada envainada y una nota doblada con la letra de Loki.']] }),
+    { type: 'item', at: [-0.9, 0.55, 1.75], shape: 'paper', color: 0xe8dcc0, kind: 'item', sealed: true, sealedBy: 'arcon', name: 'Nota de Loki para ti', lines: [['Tú', '«Si lees esto, ya me has salvado una vez. No lo recuerdas porque te lo quité. Era demasiado para una mortal.»'], ['Tú', '«Esta vez no te lo voy a quitar. Pase lo que pase. Perdón por todas las anteriores.»'], ['Tú', 'Todas las anteriores. ¿Cuántas?']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:30', do: 'presence', text: 'En una de las literas hay un niño dormido abrazado a un casco. Tiene tu misma manta. La tuya, la de casa.' },
+    { on: 't:60', do: 'say', lines: [['{p} (móvil)', 'No vayas al puente. Quédate en el camarote. Ya lo has visto: siempre acaba igual.']] },
+    { on: 'lock:arcon', do: 'heartbeat', n: 6 }
+  ]);
+
+  CHAPTERS.splice(2, 0, SAK);
+  CHAPTERS.splice(4, 0, TVA);
+  GAME.lore.forEach(l => { if (l.t === 'Thanos y la Orden Negra') l.ch = 3; if (l.t === 'La Statesman') l.ch = 5; });
+  GAME.lore.push(
+    { ch: 2, t: 'Sakaar', text: 'Un planeta-basurero rodeado de agujeros de gusano, gobernado por el Gran Maestro, un ser antiguo obsesionado con la diversión y los combates de gladiadores. Allí cayeron Thor y Loki antes del Ragnarök: Thor como esclavo luchador, Loki como invitado de honor. Hulk era el campeón.' },
+    { ch: 4, t: 'La TVA', text: 'La Autoridad de Variación Temporal vigila que la historia siga su curso «sagrado» y poda las ramas que se desvían. Sus agentes, como Mobius, capturan variantes y las borran con bastones de reinicio. En este juego, la TVA tiene un archivo entero dedicado a esta noche.' }
+  );
+
+  // ---------- líneas de cada pareja ----------
+  const PL = PARTNER_LINES;
+  Object.assign(PL.aposentos, {
+    mobius: [['Mobius (móvil)', 'Hola, variante. Soy Mobius, de la TVA. Esta noche la he visto unas cuantas veces. Empieza por el pergamino: el espejo despierta con FRIGGA. Y la puerta, con las placas doradas.']],
+    heimdall: [['Heimdall (móvil)', 'Te veo, pequeña luz. Estás en la Bóveda de Odín. El espejo despierta con el nombre de la reina: Frigga. La puerta, con las tres placas doradas, en orden.']]
+  });
+  Object.assign(PL.sanctum, {
+    mobius: [['Mobius (móvil)', 'El Sanctum. Siempre te paras a mirar los libros. No te pares. El pergamino quiere el nombre de la jefa de Darcy, y la puerta, la dirección sin la letra.']],
+    heimdall: [['Heimdall (móvil)', 'Algo tapa mi vista en ese Sanctum. Escribe JANE en el pergamino. La puerta, el número de la dirección: 177.']]
+  });
+  Object.assign(PL.tortura, {
+    mobius: [['Mobius (móvil)', 'Esta sala es fija, variante: pase lo que pase, existe. El nombre de la pared abre el pergamino. Y no te gires a mirar las sábanas.']],
+    heimdall: [['Heimdall (móvil)', 'Conozco algunos de los nombres bajo esas sábanas. No los mires. El nombre escrito con sangre rompe el sello del pergamino.']]
+  });
+  Object.assign(PL.statesman, {
+    mobius: [['Mobius (móvil)', 'Final de la línea. Dos salidas. En las versiones que salen bien, nadie coge lo que brilla en verde. Pista de amigo.']],
+    heimdall: [['Heimdall (móvil)', 'Pequeña luz: ponte en el centro del puente y di mi nombre. Te sacaré. Es lo último que haré. Lo he visto, y me parece bien.']]
+  });
+  PL.sakaar = {
+    loki: [['Loki (móvil)', 'Sakaar. Mi mejor época, no se lo digas a Thor. La puerta de servicio: las victorias del gigante verde y luego las tuyas. Sí, las tuyas. No preguntes.']],
+    thor: [['Thor (móvil)', 'SAKAAR. Perdón. Sakaar. Aquí me hicieron luchar contra Hulk. Mira el marcador: la puerta usa sus victorias y las tuyas. No sabía que habías luchado.']],
+    valkyrie: [['Valkiria (móvil)', 'Sakaar. Aquí vendía gente al Gran Maestro. No estoy orgullosa. El cofre se abre con su placa de las fiestas; la puerta, con el marcador.']],
+    mobius: [['Mobius (móvil)', 'Sakaar. Aquí siempre bailas un rato antes de darte cuenta. No bailes. Marcador y nota de Topaz: ahí está la puerta.']],
+    heimdall: [['Heimdall (móvil)', 'Desde aquí Sakaar es un ruido de colores. Te veo en el salón. El marcador y la nota de la mesa abren la puerta de servicio.']]
+  };
+  PL.tva = {
+    loki: [['Loki (móvil)', 'La TVA. Me tuvieron ahí. Me enseñaron mis propias muertes en una pantalla. No mires las carpetas. Bueno, míralas. Luego la hora de la poda abre el ascensor.']],
+    thor: [['Thor (móvil)', 'Heimdall no te ve. ¿Dónde estás? Si es una oficina sin ventanas, busca un aviso con una hora. Las oficinas siempre tienen avisos.']],
+    valkyrie: [['Valkiria (móvil)', 'No sé qué es la TVA, pero tiene pinta de burocracia. La burocracia siempre deja la clave a la vista: busca la hora de la poda.']],
+    mobius: [['Mobius (móvil)', 'Bienvenida a mi oficina. Perdona el desorden. Mi taza abre el archivador, por cierto. Y la hora del aviso, el ascensor. Ya me lo has preguntado otras veces.']],
+    heimdall: [['Heimdall (móvil)', 'Pequeña luz… no te veo. Por primera vez desde que naciste, no te veo. Si me oyes, busca la hora de la poda y sal de ahí.']]
+  };
+  CHAPTERS.forEach(c => { if (PL[c.id]) c.partner = PL[c.id]; });
+  CHAPTERS.forEach(c => c.events.forEach(e => { if (e.do === 'say' && e.lines && e.lines.some(l => /no te he escrito/i.test(l[1] || ''))) e.ach = 'gaslight'; }));
+})();
+</script>
 <script>'use strict';
 // =====================================================================
 //  Motor de terror en primera persona (inspirado en el formato de halloween.dev)
@@ -1261,7 +1500,7 @@ function updateMarks() {
   const k = D().marks; if (!level || !level.marks) return;
   for (const o of level.marks) {
     const sp = o._mark; let want = k;
-    const done = o.gone || (o.kind === 'inspect' && level.inspected.has(o.id || o.name)) || (o.kind === 'pc' && level.pcUnlocked) || (o.kind === 'door' && level.found < level.total);
+    const done = o.gone || (o.kind === 'inspect' && level.inspected.has(o.id || o.name)) || (o.kind === 'pc' && level.pcUnlocked) || (o.kind === 'door' && level.found < level.total) || (o.kind === 'lock' && o.opened);
     if (done || (o.hidden && !level.dark) || !o._g.visible || (o.fake && !D().fakeGlow)) want = 0;
     if (o.kind === 'inspect' && !o.read && !o.sound && k < 1) want *= 0.5; // en Normal solo brillan fuerte las pistas que importan
     o._g.getWorldPosition(_mp); _mp.y = (o.focusY !== undefined ? o.focusY : _mp.y + 0.1) + 0.14;
@@ -1401,6 +1640,7 @@ async function buildLevel(ci, prog) {
     g.position.set(x, y, z); group.add(g); o._g = g; o.pos = new THREE.Vector3(x, y, z);
     if (res.solid && !o.wall) { const [sw, sd] = res.solid; const c = Math.abs(Math.cos(g.rotation.y)), s = Math.abs(Math.sin(g.rotation.y)); const hw = (sw * c + sd * s) / 2, hd = (sw * s + sd * c) / 2; level.solids.push({ x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd }); }
     if (o.hidden) g.visible = false;
+    if (o.sealed) g.visible = false;
     if (o.kind === 'inspect' && !o.read && o.text && (o.type === 'note' || o.type === 'frame')) o.read = { style: o.type === 'note' ? 'postit' : 'bill', text: o.text.map(t => t.replace(/^#/, '')) };
     if (o.kind === 'item') { o.idx = itemIdx++; level.items.push(o); }
     if (o.kind) { o.focusY = o.focusY ?? (y + (o.type === 'item' ? 0.1 : 0.1)); g.traverse(n => { if (n.isMesh) { n.userData.o = o; level.inter.push(n); } }); }
@@ -1569,7 +1809,11 @@ function updateAch(dt) {
 }
 
 // ---------- FX de alucinación ----------
-const FX = { pulse: 0, flash: 0, shake: 0, words: [], nextWord: 2, detect: 0, hurt: 0, fire: 0, noise: null };
+const FX = { pulse: 0, words: [], nextWord: 2, detect: 0, hurt: 0, fire: 0, noise: null };
+(function softFX() { let f = 0, k = 0;
+  Object.defineProperty(FX, 'flash', { get() { return f; }, set(v) { f = v > f ? Math.min(f + (v - f) * 0.12, 0.08) : v; }, configurable: true });
+  Object.defineProperty(FX, 'shake', { get() { return k; }, set(v) { k = v > k ? Math.min(k + (v - k) * 0.12, 0.05) : v; }, configurable: true });
+})();
 (function () { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const id = g.createImageData(128, 128); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 40; } g.putImageData(id, 0, 0); FX.noise = c; })();
 function drawFX(dt, t) {
   const cv = $('#fx'), g = cv.getContext('2d'), w = cv.width, h = cv.height;
@@ -1620,7 +1864,7 @@ let gameT = 0, interactTarget = null, toastT = 0;
 function toast(msg, sec = 3) { const el = $('#toast'); el.innerHTML = fmt(msg); el.classList.add('on'); toastT = sec; }
 function objective() {
   if (!level) return ''; const C = level.C;
-  if (level.found < level.total) return `${C.objective} · ${level.found}/${level.total}` + (level.items.some(i => i.hidden && !i.gone) && level.found >= level.total - 1 ? ' · (algo solo se ve a oscuras)' : '');
+  if (level.found < level.total) return `${C.objective} · ${level.found}/${level.total}` + (level.items.some(i => i.hidden && !i.gone) && level.found >= level.total - 1 ? ' · (algo solo se ve a oscuras)' : '') + (level.items.some(i => i.sealed && !i.gone) && !level.items.some(i => !i.gone && !i.fake && !i.sealed && !i.hidden) ? ' · (lo que falta está bajo llave)' : '');
   if (!level.pcUnlocked && C.pc && C.pc.required !== false) return C.pc.objective || GAME.pcObjective || 'Entra en el ordenador';
   if (!level.solved) return (C.codeObjective || 'Abre la puerta') + ' · tus pistas están en Pausa';
   return C.final ? (C.finalObjective || 'Termina esto') : (C.exitObjective || 'Sal de aquí');
@@ -1693,6 +1937,7 @@ const Voice = {
 };
 Voice.init();
 // ---------- Eventos de miedo ----------
+AudioFX.stinger = function () { this.heartbeat && this.heartbeat(0.6); };
 const Events = {
   trigger(key) { const C = level && level.C; if (!C || !C.events) return; C.events.forEach((ev, i) => { if (ev.on === key && !level.fired.has(i)) { level.fired.add(i); setTimeout(() => this.run(ev), (ev.delay || 0) * 1000); } }); },
   tick(dt) { const C = level.C; level.evT += dt; (C.events || []).forEach((ev, i) => { if (ev.on && ev.on.startsWith('t:') && !level.fired.has(i) && level.evT >= +ev.on.slice(2)) { level.fired.add(i); this.run(ev); } }); },
@@ -1710,12 +1955,17 @@ const Events = {
     if (d === 'flicker') { level.flick = ev.dur || 1.6; AudioFX.burst(120, 2, 0.4, 0.15); }
     else if (d === 'blackout') { setLights(false); AudioFX.thud(); setTimeout(() => { if (level && !level.dark) setLights(true); }, (ev.dur || 3) * 1000); }
     else if (d === 'knock') { AudioFX.knock(ev.n || 3); }
-    else if (d === 'slam') { AudioFX.slam(); FX.shake = 0.6; }
+    else if (d === 'slam') { AudioFX.creak ? AudioFX.creak() : AudioFX.knock(1); }
     else if (d === 'voice') { Voice.say(ev.v); }
     else if (d === 'whisper') { AudioFX.whisper(); FX.words.push({ text: ev.text || pick(GLOBAL_WHISPERS), x: rand(0.2, 0.8) * $('#fx').width, y: rand(0.2, 0.8) * $('#fx').height, life: 0, max: 2.5, size: 28, rot: rand(-0.2, 0.2), col: GAME.css['--acc'] || '#fff' }); }
-    else if (d === 'stinger') { AudioFX.stinger(); FX.flash = 0.25; FX.shake = 0.5; state.sanity -= ev.dmg || 8; }
+    else if (d === 'stinger') { this.run({ do: 'heartbeat', n: 5 }); state.sanity = Math.max(5, state.sanity - (ev.dmg || 6)); }
     else if (d === 'msg') { toast(ev.text, ev.dur || 3); }
-    else if (d === 'say') { if (!Dlg.active) Dlg.start(ev.lines); }
+    else if (d === 'say') { if (!Dlg.active) Dlg.start(ev.lines); else setTimeout(() => this.run(ev), 2500); }
+    else if (d === 'rewrite') { const o = level.objs.find(x => x.id === ev.id); if (o) { if (ev.read) o.read = Object.assign({}, o.read || {}, ev.read); if (ev.lines) o.lines = ev.lines; level.inspected.delete(o.id || o.name); o._reading = false; } AudioFX.whisper(); FX.pulse = Math.max(FX.pulse, 0.3); }
+    else if (d === 'presence') { AudioFX.creak && AudioFX.creak(); if (ev.text) toast(fmt(ev.text), ev.dur || 5); state.sanity = Math.max(5, state.sanity - (ev.dmg || 3)); FX.pulse = Math.max(FX.pulse, 0.25); }
+    else if (d === 'heartbeat') { let n = ev.n || 4; const beat = () => { if (n-- <= 0 || state.screen !== 'game') return; AudioFX.heartbeat && AudioFX.heartbeat(0.55); setTimeout(beat, 750); }; beat(); if (ev.text) toast(fmt(ev.text), 4); }
+    else if (d === 'drain') { state.sanity = Math.max(5, state.sanity - (ev.dmg || 5)); if (ev.text) toast(fmt(ev.text), 4); }
+    else if (d === 'figure' && !GAME.allowFigures) { this.run({ do: 'presence', text: pick(GAME.presence || ['Notas que alguien te mira. Cuando te giras, no hay nadie. Nunca hay nadie.']), dmg: ev.dmg || 3 }); }
     else if (d === 'figure') {
       const p = this.spot(ev.at || 'behind'); const g = new THREE.Group(); const em = new THREE.MeshBasicMaterial({ color: ev.eyes || 0xff2a6d, transparent: true, opacity: 0.9 });
       for (const sx of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 6), em); e.position.set(sx * 0.07, 1.62, 0); g.add(e); }
@@ -1728,6 +1978,7 @@ const Events = {
     } else if (d === 'show') { const o = level.objs.find(x => x.id === ev.id); if (o) { o._g.visible = true; o.hidden = false; } }
     else if (d === 'stalker') { if (level.stalker) { level.stalker.active = true; placeStalker(); AudioFX.slam(); toast(ev.text || '', 2.5); } }
     if (ev.toast) toast(ev.toast, 3);
+    if (ev.ach) unlock(ev.ach);
   }
 };
 function updateFigures(dt) {
@@ -1767,7 +2018,7 @@ function updateStalker(dt) {
   if (S2.i >= C.steps - 2 && (S2.hb = (S2.hb || 0) - dt) < 0) { AudioFX.heartbeat(0.45); S2.hb = 0.6; }
 }
 function stalkerCatch() {
-  const S2 = level.stalker; AudioFX.stinger(); AudioFX.boom(); FX.flash = 0.9; FX.shake = 1.2; unlock('hunted');
+  const S2 = level.stalker; AudioFX.heartbeat && AudioFX.heartbeat(0.7); unlock('hunted');
   if (PC.open) PC.close(); if (Phone.open) Phone.toggle(false);
   Dlg.start(pick(GAME.hunter.caught), () => { state.sanity = Math.max(5, state.sanity - 30); state.clock += (GAME.hunter.timeCost || 600) * D().time; S2.i = 0; S2.t = 0; });
 }
@@ -1901,6 +2152,14 @@ function interact() {
     addClue(o);
     if (o.read && !o._reading) { o._reading = true; Read.show(o, () => { o._reading = false; if (!o.lines || !o.lines.length) { Phone.trigger('look:' + o.id); Events.trigger('look:' + o.id); if (o.ach) unlock(o.ach); return; } interactTarget = o; doInspect(o); }); return; }
     doInspect(o);
+  } else if (o.kind === 'lock') {
+    AudioFX.ui && AudioFX.ui(); addClue(o);
+    if (o.opened) { Dlg.start(o.openLines || [[GAME.hero.name, 'Ya está abierto. Lo que había dentro ya es tuyo.']]); return; }
+    const openIt = () => Keypad.show(o.codeTitle || o.name, o.code, ok => { if (!ok) return; o.opened = true; AudioFX.creak && AudioFX.creak();
+      level.objs.forEach(x => { if (x.sealedBy === o.id) { x.sealed = false; x._g.visible = true; } });
+      unlock('lock_any'); if (o.ach) unlock(o.ach); $('#obj').textContent = objective();
+      Dlg.start(o.lines || [[GAME.hero.name, 'Clac. Se abre.']], () => { Events.trigger('lock:' + o.id); Phone.trigger && Phone.trigger('lock:' + o.id); }); });
+    if (o.before && !o._seen) { o._seen = true; Dlg.start(o.before, openIt); } else openIt();
   } else if (o.kind === 'npc') { Dlg.start(o.lines, () => { if (o.ach) unlock(o.ach); }, { pos: focusOf(o), dist: o.dist || 1.1 }); }
   else if (o.kind === 'pc') { PC.show(o); }
   else if (o.kind === 'phone') { Phone.toggle(true); }
@@ -1917,9 +2176,11 @@ const PARTNER = () => (GAME.partners || []).find(p => p.id === state.partner);
 function fmtP(t) { const p = PARTNER(); return String(t).replace(/\{p\}/g, p ? p.name : 'nadie').replace(/\{pp\}/g, p ? p.pet : 'tú'); }
 const Help = {
   n: 0, idle: 0, offered: false,
-  reset() { this.n = 0; this.idle = 0; this.offered = false; },
+  reset() { this.n = 0; this.ln = 0; this.idle = 0; this.offered = false; },
   next() { // pista fácil según el punto exacto en el que estás
-    const C = level.C, it = level.items.find(i => !i.gone && !i.fake && !i.hidden) || level.items.find(i => !i.gone && !i.fake);
+    const C = level.C, it = level.items.find(i => !i.gone && !i.fake && !i.hidden && !i.sealed) || level.items.find(i => !i.gone && !i.fake && !i.sealed);
+    if (!it) { const sl = level.items.find(i => !i.gone && !i.fake && i.sealed); const L = sl && level.objs.find(x => x.id === sl.sealedBy && !x.opened);
+      if (L) { this.ln = (this.ln || 0) + 1; return this.ln < 2 ? (L.hint || `Lo que te falta está dentro de «${L.name}». La combinación está escrita en algún papel de esta sala.`) : `«${L.name}» se abre con ${L.code}.`; } }
     if (it) return it.hint || `Te falta «${it.name}». ${it.hidden ? 'Solo aparece con la luz apagada: apágala (busca el interruptor o el flexo) y mira el suelo y las paredes.' : 'Está en esta sala: busca el brillo y acércate con WASD.'}`;
     if (C.pc && !level.pcUnlocked && C.pc.required !== false) { this.n++; return this.n < 2 ? (C.pc.hint || 'Hay algo que pide una contraseña. La pista está escrita en esta sala.') : `Escribe «${C.pc.password}» en ${C.pc.title || 'el ordenador'}.`; }
     if (!level.solved && C.code) { this.n++; return this.n < 2 ? (C.codeHelp || C.codeFamily || 'La puerta tiene un código. Lee los papeles y escucha los sonidos de la sala.').replace(/^[^:]*: /, '') : `El código de la puerta es ${C.code}.`; }
@@ -2064,7 +2325,7 @@ function togglePause(force) {
 // ---------- Menú principal ----------
 const MENU = [
   { id: 'start', label: () => state.maxChapter > 0 ? 'Continuar' : (GAME.startLabel || 'Empezar juego'), desc: () => state.maxChapter > 0 ? `Vuelve a la noche justo donde la dejaste: ${CHAPTERS[state.chapter].title}.` : GAME.menuDesc.start, act: () => { AudioFX.init(); if (!state.diffChosen) { openPanel('diff', true); return; } if (GAME.partners && !state.partner) { openPanel('partner', true); return; } state.fromMenu = true; Phone.resetAll(); startChapter(state.chapter || 0); } },
-  { id: 'partner', label: () => 'Tu pareja', badge: () => (PARTNER() || {}).name || '—', desc: () => 'Elige de quién eres pareja. Te guiará por el móvil en cada capítulo.', act: () => openPanel('partner') },
+  { id: 'partner', label: () => GAME.partnerLabel || 'Tu pareja', badge: () => (PARTNER() || {}).name || '—', desc: () => GAME.partnerMenuDesc || 'Elige de quién eres pareja. Te guiará por el móvil en cada capítulo.', act: () => openPanel('partner') },
   { id: 'diff', label: () => 'Dificultad', badge: () => D().name, desc: () => D().desc, act: () => openPanel('diff') },
   { id: 'codice', label: () => GAME.loreName || 'Códice', badge: () => `${loreUnlocked().length}/${(GAME.lore || []).length}`, desc: () => 'El lore del mundo: personajes, lugares y lo que pasó antes de esta noche.', act: () => openPanel('codice') },
   { id: 'chapters', label: 'Capítulos', badge: () => `${Math.min(state.maxChapter + 1, CHAPTERS.length)}/${CHAPTERS.length}`, desc: () => GAME.menuDesc.chapters, act: () => openPanel('chapters') },
