@@ -400,7 +400,7 @@ body.breathing:after{content:"respira…";position:fixed;left:50%;top:60%;transf
   <div id="clock"></div><div id="obj"></div>
   <div id="abil" style="display:none"><b></b><i></i></div>
   <button id="btnPause" aria-label="Pausa">II</button>
-  <button id="btnHelp" aria-label="Ayuda" title="Pedir ayuda a tu pareja (H)">?</button>
+  <button id="btnHelp" aria-label="Ayuda" title="Pedir ayuda a tu persona de confianza (H)">?</button>
   <button id="btnPhone" aria-label="Móvil">📱<b id="phoneBadge" style="display:none">0</b></button>
 </section>
 <div id="hintbar"><span><kbd>🖱</kbd>Mirar</span><span><kbd>E</kbd>Interactuar</span><span><kbd>🖱 dcho.</kbd>Mantén para forzar la vista</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>Caminar</span><span><kbd>⇧</kbd>Correr</span><span id="hintAbil" style="display:none"><kbd>F</kbd>Poder</span><span id="hintPhone"><kbd>Q</kbd>Móvil</span><span id="hintBreath" style="display:none"><kbd>Espacio</kbd>Respirar</span><span><kbd>Esc</kbd>Pausa</span></div>
@@ -811,6 +811,295 @@ GAME.voices = [
   { lang: 'fr-FR', t: 'Donne-moi ton cœur.', es: 'Dame tu corazón.' }
 ];
 CHAPTERS.forEach(c => { c.events = (c.events || []).concat([{ on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }, { on: 'item:2', do: 'flicker', dur: 1.2 }]); });
+</script>
+<script id="patch-v3">// ================= PARCHE v3 · París: amistad, terror psicológico, capítulos largos =================
+(function () {
+  const M2 = (m, at, x = {}) => Object.assign({ type: 'model', m, at }, x);
+  const F = (at, id, name, title, text, x = {}) => Object.assign({ type: 'folio', at, kind: 'inspect', id, name, paper: '#fff6e8', ink: '#3a1020', read: { style: 'postit', title, text }, text: [title ? '#' + title : '', ...text.slice(0, 6)] }, x);
+  const WF = (wall, at, id, name, title, text, x = {}) => Object.assign({ type: 'folio', wall, at, upright: true, w: 0.42, h: 0.56, paper: '#fff6e8', ink: '#3a1020', kind: 'inspect', id, name, read: { style: 'postit', title, text }, text: ['#' + title, ...text.slice(0, 5)] }, x);
+  const byId = id => CHAPTERS.find(c => c.id === id);
+  const calm = evs => (evs || []).filter(e => !['figure', 'stinger', 'slam'].includes(e.do));
+
+  GAME.saveKey = 'akuma-rooms-v3';
+  GAME.version = 'v2026.11.12 · fan game';
+  GAME.advisory = 'Ponte auriculares. Juega a solas. Juega a oscuras.<br>Terror psicológico: no hay sustos de golpe. Hay cosas peores. Contiene luces que parpadean.';
+  GAME.menuDesc.start = 'Duermes en casa de los Dupain-Cheng. A las 23:12, un mensaje de un número oculto. Siete lugares de París. Dos salidas al amanecer. Una te mata. Y nadie en esta casa recuerda el día en que naciste.';
+  // de pareja a amistad: Lin y sus amigos son adolescentes
+  GAME.partnerTitle = '¿En quién confías esta noche?';
+  GAME.partnerText = 'Eres Lin, una chica corriente de París: sin Miraculous, sin superpoderes. Esta noche duermes en casa de los Dupain-Cheng, en la buhardilla de invitados. Tu persona de confianza te guiará por el móvil; pulsa H o «?» cuando te atasques. Pero esta noche alguien sabe copiar voces. Y también mensajes.';
+  GAME.perk.name = 'Tu persona de confianza';
+  GAME.partnerLabel = 'Tu persona de confianza';
+  GAME.partnerMenuDesc = 'Elige en quién confías esta noche. Te guiará por el móvil en cada capítulo.';
+  GAME.achievements.forEach(a => { if (a.id === 'perk') a.name = 'Confianza'; });
+  const A = GAME.partners.find(p => p.id === 'adrien'); Object.assign(A, { rel: 'modelo, amigo de clase… y Cat Noir', pet: 'Lin', helpIntro: ['Lin, mira:', 'Escucha:', 'Gatuna pista:'], offer: ['Lin, ¿te echo una pata?', 'Llevas un rato quieta. ¿Quieres una pista?'] });
+  const L = GAME.partners.find(p => p.id === 'luka'); Object.assign(L, { pet: 'Lin', rel: 'músico, hermano de Juleka', helpIntro: ['Escucha, Lin:', 'Respira. Mira:', 'Tranquila:'] });
+  GAME.presence = [
+    'Tu móvil dice que has enviado un mensaje hace un minuto. A Marinette. «Ya voy». No lo has escrito.',
+    'Te ves reflejada en el cristal. Tu reflejo tarda un poco en parpadear.',
+    'Hueles a los croissants de esta mañana. Esta mañana no estabas en París.',
+    'Una mariposa blanca, quieta en la pared. No la habías visto. Sigue quieta.',
+    'Intentas recordar la cara de tu madre. Te sale la de Sabine.',
+    'Alguien, muy cerca, susurra tu nombre con tu propia voz.'
+  ];
+  GAME.partners.push(
+    { id: 'marinette', name: 'Marinette', rel: 'tu hermana', pet: 'hermanita', color: '#ff5f8a', desc: 'Torpe, valiente y con demasiados secretos. Te escribe desde su cuarto, justo debajo del tuyo. Dice que esta noche no pegará ojo hasta saber que estás bien.', helpIntro: ['¡Hermanita! Mira:', 'Vale, vale, respira:', 'Te lo digo yo:'], offer: ['Llevas un rato quieta 😰 ¿te ayudo?', '¿Hermanita? ¿Quieres una pista? 🌸'] },
+    { id: 'alya', name: 'Alya', rel: 'periodista del Ladyblog', pet: 'Lin', color: '#ff9a3a', desc: 'Curiosa, valiente y con el móvil siempre grabando. Te guía desde el Ladyblog, con veinte pestañas abiertas y un mapa de akumas en directo.', helpIntro: ['Exclusiva, Lin:', 'Lo tengo en el blog:', 'Mira esto:'], offer: ['Te veo quieta en el mapa 👀 ¿te ayudo?', '¿Quieres que investigue por ti?'] },
+    { id: 'nino', name: 'Nino', rel: 'DJ y mejor amigo de Adrien', pet: 'colega', color: '#4ac8ff', desc: 'Tranquilo, con los cascos al cuello y una calma que contagia. Te pone música por el móvil para que respires más despacio.', helpIntro: ['Tranqui, colega:', 'A ver, sin agobios:', 'Mira, es fácil:'], offer: ['Colega, te noto agobiada. ¿Te echo un cable?', '¿Una pista? Te la pongo en bucle si quieres.'] },
+    { id: 'felix', name: 'Félix', rel: 'primo de Adrien', pet: 'Lin', color: '#9aa8b8', desc: 'Frío, educado y siempre tres pasos por delante. No sabes si es tu amigo. Él tampoco. Pero esta noche es el único que no se ha sorprendido de nada.', helpIntro: ['Es evidente:', 'Fíjate, Lin:', 'Te lo diré una vez:'], offer: ['Llevas un rato dudando. Es ineficiente. ¿Te ayudo?', '¿Quieres la respuesta o prefieres sufrir un poco más?'] }
+  );
+  GAME.achievements.push(
+    { id: 'lock_any', icon: '🗝️', name: 'Bajo llave', hint: 'Abre algo que alguien cerró para ti.' },
+    { id: 'cap_colegio', icon: '🏫', name: 'Pupitre vacío', hint: 'Sal del colegio Françoise Dupont.' },
+    { id: 'cap_liberty', icon: '🚢', name: 'El Liberty', hint: 'Sal del barco de los Couffaine.' },
+    { id: 'code_colegio', icon: '🔔', name: 'A las 16:30', hint: 'Abre la puerta de clase.' },
+    { id: 'code_liberty', icon: '📻', name: 'La canción del barco', hint: 'Abre la compuerta del Liberty.' },
+    { id: 'ficha', icon: '🗂️', name: 'Alumna nueva', hint: 'Encuentra tu ficha de alumna.' },
+    { id: 'gaslight', icon: '📱', name: 'Yo no te he escrito', hint: 'Recibe un mensaje que tu amigo nunca envió.' }
+  );
+
+  // ---------- I · La buhardilla ----------
+  let C = byId('buhardilla');
+  C.room.objects.push(
+    WF('e', [0, 1.6, -1.6], 'calendario', 'Calendario de Marinette', 'Septiembre 🌸', ['día 7: ¡VUELVE LIN!', '', 'La caja de costura se abre', 'con el día y el mes en que vuelves.', 'Cuatro ruedas: 0 7 0 9 ✂️'], { ach: 'reader' }),
+    { type: 'item', at: [-1.95, 0.95, -1.6], shape: 'paper', color: 0xf2f2f2, kind: 'item', sealed: true, sealedBy: 'costura', name: 'Una foto tuya que no recuerdas', lines: [['Tú', 'Una foto mía, aquí, en esta buhardilla, mirando a cámara. Con el pijama que llevo puesto.'], ['Tú', 'Detrás, con la letra de Marinette: «Lin, 8 de septiembre». Mañana.'], ['Tú', 'Mañana. La foto es de mañana. Y yo salgo sonriendo.']] }
+  );
+  { const cab = C.room.objects.find(o => o.m === 'painted_wooden_cabinet'); Object.assign(cab, { kind: 'lock', id: 'costura', name: 'Caja de costura de Marinette (cuatro ruedas)', focusY: 1.0, code: '0709', codeTitle: 'Caja de costura · cuatro ruedas', hint: 'El calendario de la pared: el día y el mes en que vuelves. 0709.', lines: [['Tú', 'Hilos, alfileres, un acerico con forma de mariquita. Y una foto, boca abajo.']] }); }
+  C.events = calm(C.events).concat([
+    { on: 't:35', do: 'presence', text: 'La almohada de la cama tiene la forma de tu cabeza. No te has tumbado todavía.' },
+    { on: 't:70', do: 'say', lines: [['{p} (móvil)', 'Lin, no salgas de la buhardilla. Quédate en la cama. Duérmete. Mañana lo verás todo distinto.']] },
+    { on: 't:100', do: 'say', lines: [['{p} (móvil)', 'Perdona, me había dormido. ¿Qué me dices de la cama? Yo no te he escrito nada, Lin.']] },
+    { on: 't:101', do: 'drain', dmg: 4 },
+    { on: 'lock:costura', do: 'heartbeat', n: 5, text: 'Mañana. Sonríes en una foto de mañana.' }
+  ]);
+
+  // ---------- II · La boulangerie ----------
+  C = byId('boulangerie');
+  C.room.objects.push(
+    WF('w', [0, 1.65, 0.95], 'receta', 'Receta de Tom', 'Masa madre · Tom', ['3 tazas de harina', '1 cucharada de sal', '4 horas de reposo', '', 'El cajón del obrador se abre', 'con la receta. En orden.'], { paper: '#fff2c0' }),
+    M2('painted_wooden_cabinet', [3.05, 0, 0.3], { rot: -Math.PI / 2, s: 0.85, tint: 0xd8c0a0, kind: 'lock', id: 'obrador', name: 'Cajón del obrador (tres ruedas)', focusY: 0.9, code: '314', codeTitle: 'Cajón del obrador · tres ruedas', hint: 'La receta de Tom de la pared: 3 tazas, 1 cucharada, 4 horas.', lines: [['Tú', 'Delantales doblados. Un rodillo. Y la libreta azul de Sabine, la que nunca deja que nadie lea.']] }),
+    { type: 'item', at: [2.7, 0.9, 0.3], shape: 'book', color: 0x4a7aff, kind: 'item', sealed: true, sealedBy: 'obrador', name: 'Libreta azul de Sabine', lines: [['Tú', '«Hoy Marinette ha vuelto a decir que no se acuerda de cuándo nació Lin.»'], ['Tú', '«Yo tampoco. Tom tampoco. Ninguno de los tres se acuerda.»'], ['Tú', '«Pero las fotos están ahí, en todos los álbumes. Así que será verdad. Tiene que ser verdad.»']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:40', do: 'presence', text: 'En la vitrina hay cuatro tazas con nombres pintados: Tom, Sabine, Marinette. La cuarta no tiene nombre. Es la tuya. ¿Verdad?' },
+    { on: 'lock:obrador', do: 'heartbeat', n: 6, text: 'Ninguno de los tres se acuerda. Tú tampoco.' },
+    { on: 'lock:obrador', do: 'drain', dmg: 6, delay: 2 }
+  ]);
+
+  // ---------- III · El atelier ----------
+  C = byId('atelier');
+  C.room.objects.push(
+    F([-0.1, 0.787, -1.8], 'notaNat', 'Nota de Nathalie', 'Cajón · N.', ['El cajón de la cómoda se abre', 'con la hora del piano de Adrien.', 'Está en la agenda de la tableta.', '', 'Cuatro cifras. Sin los dos puntos.']),
+    M2('painted_wooden_cabinet', [2.95, 0, 1.6], { rot: -Math.PI / 2, s: 0.85, tint: 0xd8d8e0, kind: 'lock', id: 'comoda', name: 'Cómoda de Nathalie (cuatro ruedas)', focusY: 0.9, code: '1700', codeTitle: 'Cómoda de Nathalie · cuatro ruedas', hint: 'La agenda de la tableta: Adrien tiene piano a las 17:00. 1700.', lines: [['Tú', 'Patrones de costura, muy bien doblados. Uno lleva una etiqueta con mi nombre.']] }),
+    { type: 'item', at: [2.6, 0.9, 1.6], shape: 'paper', color: 0xd8d8e0, kind: 'item', sealed: true, sealedBy: 'comoda', name: 'Patrón con tus medidas', lines: [['Tú', 'Un patrón de costura con mis medidas exactas. Hombros, cintura, la largura de mis brazos.'], ['Tú', 'Etiqueta: «Amok · modelo L · para la familia Dupain-Cheng».'], ['Tú', 'Un sentimonstruo. Alguien encargó una persona hecha a medida. Para una familia. Con mis medidas.']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:40', do: 'presence', text: 'En los bocetos de Gabriel, entre las caras de Emilie, hay una que no es ella. Es la tuya.' },
+    { on: 'lock:comoda', do: 'heartbeat', n: 7, text: 'Hecha a medida. Para una familia.' },
+    { on: 'lock:comoda', do: 'drain', dmg: 7, delay: 2 }
+  ]);
+
+  // ---------- IV (nuevo) · El colegio ----------
+  const COL = {
+    id: 'colegio', num: 'IV', time: '01:00', title: 'El colegio Françoise Dupont', place: 'París · Aula de Mme. Bustier', loading: 'Cargando el colegio…',
+    epigraph: '«De noche, un colegio es solo un sitio lleno de sillas esperando a alguien. Una de ellas lleva años esperándome.»',
+    gaze: [26, 38],
+    room: Object.assign({}, PARIS, { w: 6.6, d: 5.6, h: 3.2, wallTex: { id: 'plastered_wall_02', s: 2.2, tint: 0xe8d8c0 }, floorTex: { id: 'herringbone_parquet', s: 1.6, tint: 0xb8a088 }, ceilTex: { id: 'white_stucco', s: 2, tint: 0x8a8a90 }, skirt: 0x5a3a2a, objects: [
+      M2('modern_ceiling_lamp_01', [-1.4, 3.2, 0], { id: 'main', hang: true, s: 0.8, light: { c: 0xfff0d8, i: 0.9, y: -0.4, d: 9 } }),
+      M2('modern_ceiling_lamp_01', [1.4, 3.2, 0], { hang: true, s: 0.8, light: { c: 0xfff0d8, i: 0.6, y: -0.4, d: 8 } }),
+      M2('standing_chalkboard_01', [2.7, 0, 2.2], { rot: -2.4 }),
+      { type: 'frame', wall: 'n', at: [0, 1.6], w: 1.4, h: 0.9, text: ['#Deberes', 'Mates: pág. 12', 'Historia: pág. 15', '', 'La puerta se cierra', 'a la hora de salida'], textOpt: { bg: '#1c1f1c', color: '#e8e8e0', size: 38, big: 44 }, kind: 'inspect', id: 'pizarra', name: 'Pizarra', focusY: 1.35, lines: [['Tú', '«La puerta se cierra a la hora de salida». Debajo, con otra tiza: «a las 16:30, Lin».'], ['Tú', 'Mi nombre. En la pizarra de una clase a la que no voy.']] },
+      M2('metal_office_desk', [1.8, 0, -1.8], { s: 0.85, tint: 0x8a6a4a }),
+      M2('desk_lamp_arm_01', [2.3, 0.67, -1.95], { kind: 'light', name: 'Apagar / encender el flexo de la profesora', light: { c: 0xfff0d8, i: 0.7, y: 0.62, z: 0.22, d: 4, bulb: false }, focusY: 0.9 }),
+      M2('metal_toolbox', [1.45, 0.67, -1.85], { s: 0.7, solid: false, tint: 0xc04040, kind: 'lock', id: 'cajaProfe', name: 'Caja de la profesora (tres ruedas)', focusY: 0.8, code: '024', codeTitle: 'Caja de Mme. Bustier · tres ruedas', hint: 'La lista de clase de la pared: 24 alumnos, sin contar invitados. 024.', lines: [['Tú', 'Fichas de alumnos, ordenadas por apellido. La primera de la D tiene una foto pegada con celo, todavía blanda.']] }),
+      { type: 'item', at: [1.45, 0.85, -1.55], shape: 'paper', color: 0xf2f2f2, kind: 'item', sealed: true, sealedBy: 'cajaProfe', ach: 'ficha', name: 'Tu ficha de alumna', lines: [['Tú', '«Nombre: Lin Dupain-Cheng. Curso: el de Marinette.»'], ['Tú', '«Fecha de alta: hoy. Hora: 01:04.»'], ['Tú', 'Miro el reloj de la clase. Son las 01:04.']] },
+      M2('WoodenTable_03', [-1.6, 0, -0.6], { s: [0.75, 0.8, 0.6], tint: 0xb89878 }), M2('dining_chair_02', [-1.6, 0, 0.0], { rot: Math.PI, solid: false }),
+      M2('WoodenTable_03', [0.2, 0, -0.6], { s: [0.75, 0.8, 0.6], tint: 0xb89878 }), M2('dining_chair_02', [0.2, 0, 0.0], { rot: Math.PI, solid: false }),
+      M2('WoodenTable_03', [-1.6, 0, 1.2], { s: [0.75, 0.8, 0.6], tint: 0xb89878 }), M2('dining_chair_02', [-1.6, 0, 1.8], { rot: Math.PI, solid: false }),
+      M2('WoodenTable_03', [0.2, 0, 1.2], { s: [0.75, 0.8, 0.6], tint: 0xb89878 }), M2('dining_chair_02', [0.2, 0, 1.8], { rot: Math.PI, solid: false }),
+      M2('steel_frame_shelves_02', [-3.0, 0, -1.4], { rot: Math.PI / 2, tint: 0xa08a6a }),
+      M2('book_encyclopedia_set_01', [-3.0, 1.1, -1.4], { rot: Math.PI / 2, solid: false }),
+      M2('potted_plant_02', [-2.9, 0, 2.3]),
+      { type: 'frame', wall: 'e', at: [0, 1.7, 0.9], w: 0.75, h: 0.95, text: ['#LISTA DE CLASE', 'Agreste, Adrien', 'Césaire, Alya', 'Dupain-Cheng, Marinette', 'Lahiffe, Nino', '… (24 alumnos)'], textOpt: { bg: '#f2ece0', color: '#2a2a2a', size: 30, big: 38 }, kind: 'inspect', id: 'lista', name: 'Lista de clase', focusY: 1.7, dist: 1.0, lines: [['Tú', '24 alumnos. Los cuento dos veces. Mi nombre no está. Entre «Dupain-Cheng, Marinette» y «Lahiffe» hay un hueco, como si hubieran borrado una línea.'], ['Tú', 'Al pie, a lápiz: «Caja de la profesora: los alumnos que hay. Sin contar invitados».']] },
+      { type: 'window', wall: 'n', at: [-2.0, 1.9], w: 1.2, h: 1.1, view: 'paris' },
+      { type: 'item', at: [0.2, 0.7, -0.55], shape: 'paper', color: 0xffd0e0, kind: 'item', name: 'Dibujo en el pupitre de Marinette', lines: [['Tú', 'En el pupitre de Marinette, dibujado a boli: ella y Alya. Y una tercera chica, borrada a medias con típex.'], ['Tú', 'Debajo del típex, a contraluz, se lee: «Lin no existe». Y luego, con otro boli: «Sí existe, sí existe, sí existe».']] },
+      { type: 'item', at: [-1.6, 0.7, 1.25], shape: 'book', color: 0xff9a3a, kind: 'item', name: 'Libreta de Alya', lines: [['Tú', 'Notas para el Ladyblog: «Investigar: ¿por qué nadie de la clase recuerda a la hermana de Mari antes de septiembre?»'], ['Tú', 'Tachado tres veces. Al lado: «No preguntes. No preguntes. No preguntes».']] },
+      { type: 'item', at: [0.2, 0.7, 1.25], shape: 'box', color: 0xd03030, kind: 'item', name: 'Gorra de Nino', lines: [['Tú', 'La gorra roja de Nino, olvidada en la silla. Dentro, escrito en la etiqueta: «Si te la encuentras, Lin, es que ya es tarde».'], ['Tú', 'Nino no me conoce. Apenas me ha visto dos veces.']] },
+      { type: 'item', at: [-2.9, 0.65, -1.4], shape: 'paper', color: 0xe8dcc0, kind: 'item', name: 'Foto de clase de hace tres años', lines: [['Tú', 'La clase de Marinette, con doce años. Todos sonrientes. Y en la última fila, al fondo, yo.'], ['Tú', 'Con la cara de ahora. Con la ropa de esta noche. Hace tres años.']] },
+      { type: 'item', at: [-2.0, 1.45, -2.65], shape: 'butterfly', color: 0xf2f2f2, kind: 'item', hidden: true, name: 'Mariposa blanca en la ventana', focusY: 1.45, lines: [['Tú', 'A oscuras brilla una mariposa blanca, quieta contra el cristal. No negra: blanca. Las de Monarca eran blancas.'], ['Tú', 'No se mueve. Ni cuando acerco la mano. Ni cuando contengo la respiración. Me está esperando.']] },
+      { type: 'graffiti', wall: 'w', at: [0, 2.2, 0.6], w: 1.8, hidden: true, text: ['¿QUIÉN', 'ERES?'], color: '#c9a2ff', size: 100 },
+      { type: 'door', wall: 's', at: [1.8, 0], code: true, kind: 'door', name: 'Puerta de clase', color: 0x8a5a3a, focusY: 1.2, tex: 'dark_wooden_planks', tint: 0xb07a50 }
+    ] }),
+    start: { at: [0.9, 0.6], yaw: 0 },
+    objective: 'Busca rastros de ti en la clase de Marinette',
+    code: '1630', codeTitle: 'Puerta de clase · cuatro ruedas', codeObjective: 'Abre la puerta de clase (la hora de salida de la pizarra)',
+    codeFamily: 'Marinette siempre lo dice: «¡A las 16:30 me voy volando!». 1630.',
+    intro: [['Tú', 'El aula de Marinette. Huele a tiza y a goma de borrar. Las sillas están puestas sobre las mesas. Todas menos una.'], ['Tú', 'La mía. No tengo silla aquí. No tengo mesa aquí. Y aun así sé cuál es la mía.']],
+    allFound: [['Tú', 'El dibujo, la libreta, la gorra, la foto, mi ficha. Todos lo han notado. Todos han decidido no preguntar.'], ['Tú', 'La puerta: la hora de salida que hay en la pizarra.']],
+    locked: 'Aún no. En esta clase queda algo de mí.',
+    events: [
+      { on: 't:10', do: 'presence', text: 'El reloj de la clase va hacia atrás. Muy despacio. Solo cuando no lo miras.' },
+      { on: 't:45', do: 'say', lines: [['{p} (móvil)', 'Siéntate en tu sitio, Lin. El de la última fila. Ahí no te ven.']] },
+      { on: 't:80', do: 'say', lines: [['{p} (móvil)', '¿Tu sitio? Tú no tienes sitio en esa clase. Yo no te he escrito eso. Lin, sal de ahí.']] },
+      { on: 't:81', do: 'drain', dmg: 5 },
+      { on: 'look:lista', do: 'presence', delay: 4, text: 'Vuelves a contar. 24. Lo cuentas en voz alta. Tu voz suena como la de Marinette.' },
+      { on: 'lock:cajaProfe', do: 'heartbeat', n: 6, text: 'Alta: hoy, 01:04. Eres nueva. Eres de esta noche.' },
+      { on: 'dark', do: 'presence', delay: 2, text: 'A oscuras, en la pared, alguien ha escrito una pregunta. Con tu letra.' },
+      { on: 'found', do: 'flicker', dur: 2 },
+      { on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }
+    ],
+    phone: [
+      { on: 'start', from: 'Alya', delay: 3, msgs: ['lin', '¿por qué sales en la cámara del colegio a la 01:00?', 'el colegio está cerrado desde las 18:00 😳'], replies: [
+        { t: 'No lo sé. Estoy dentro.', then: [{ msgs: ['vale. respira.', 'busca la lista de clase. hay algo raro con ella. llevo semanas sin querer mirarla.'] }] },
+        { t: 'Será otra persona.', then: [{ msgs: ['lleva tu pijama', 'lin, lleva TU pijama'] }] }] },
+      { on: 'item:2', from: 'Número oculto', msgs: ['¿Te gusta tu colegio nuevo?', 'Te lo hemos preparado con mucho cariño. 🦋'] }
+    ],
+    exitName: 'Puerta de clase'
+  };
+
+  // ---------- V · El estudio de Mr. Banana ----------
+  C = byId('estudio'); C.num = 'V';
+  C.room.objects.push(
+    WF('w', [0, 1.6, 0.9], 'archivo', 'Archivo de cintas', 'Archivo · cintas', ['0410 · alcaldesa', '0411 · Ladybug (falsa)', '0412 · la invitada', '', 'Caja de cintas: el número', 'de la invitada.'], { paper: '#fff8c0' }),
+    M2('metal_tool_chest', [-3.0, 0, -0.7], { rot: Math.PI / 2, s: 0.8, tint: 0x2a2a2a, kind: 'lock', id: 'cintas', name: 'Caja de cintas (tres ruedas)', focusY: 0.8, code: '412', codeTitle: 'Caja de cintas · tres ruedas', hint: 'El archivo de cintas de la pared: la de la invitada es la 412.', lines: [['Tú', 'Una sola cinta, con una etiqueta: «La invitada · esta noche · 23:12».']] }),
+    { type: 'item', at: [-2.65, 0.6, -0.7], shape: 'box', color: 0x1a1a1a, kind: 'item', sealed: true, sealedBy: 'cintas', name: 'Cinta de esta noche', lines: [['Tú', 'La pongo en el monitor. Es la buhardilla. Las 23:12. Estoy dormida en la cama.'], ['Tú', 'A las 23:12 yo estaba despierta. Leyendo el primer mensaje. Lo recuerdo.'], ['Tú', 'En la cinta, sigo dormida hasta el final. Hasta las 02:15. Hasta ahora.']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:40', do: 'presence', text: 'En una de las pantallas sales tú, de espaldas, mirando una pantalla. En esa pantalla sales tú, de espaldas.' },
+    { on: 'lock:cintas', do: 'heartbeat', n: 7, text: 'Sigues dormida. En algún sitio, sigues dormida.' },
+    { on: 'lock:cintas', do: 'drain', dmg: 7, delay: 2 }
+  ]);
+
+  // ---------- VI (nuevo) · El Liberty ----------
+  const LIB = {
+    id: 'liberty', num: 'VI', time: '03:00', title: 'El Liberty', place: 'París · Barco de los Couffaine, en el Sena', loading: 'Bajando al río…',
+    epigraph: '«El barco se mece aunque no haya viento. Anarka dice que es el río, que respira. Yo creo que es el barco, que recuerda.»',
+    gaze: [24, 34],
+    room: Object.assign({}, PARIS, { w: 6.0, d: 4.8, h: 2.7, wallStyle: 'castle', wallBase: '#3a2a20', mortar: '#1a120c', wallTex: { id: 'dark_wooden_planks', s: 1.6, tint: 0x9a7a5a }, floorTex: { id: 'dark_wooden_planks', s: 1.6, tint: 0x7a5a40 }, ceilTex: { id: 'dark_wooden_planks', s: 1.6, tint: 0x4a3a2a }, fog: 0x060a10, fogDensity: 0.055, sky: 0x3a5a8a, ground: 0x05060a, ambient: 0.3, motes: 0xa0c8ff, objects: [
+      M2('hanging_industrial_lamp', [0, 2.7, 0], { id: 'main', hang: true, s: 0.65, light: { c: 0xffd0a0, i: 0.95, y: -0.98, d: 8 } }),
+      M2('WoodenTable_01', [0, 0, -1.7], { s: [0.9, 1.0, 1.1] }),
+      M2('ArmChair_01', [-2.3, 0, 0.9], { rot: Math.PI / 2 + 0.3, tint: 0x5a3a6a }),
+      M2('old_bed_frame', [2.1, 0, 1.0], { tint: 0x6a5a4a }),
+      M2('Barrel_01', [-2.5, 0, -1.8]), M2('wooden_crate_02', [2.4, 0, -1.7], { rot: 0.3 }),
+      M2('Lantern_01', [-2.5, 0.88, -1.8], { solid: false, light: { c: 0xffc070, i: 0.45, y: 0.15, d: 3, flick: true, bulb: false } }),
+      M2('vintage_radio_transceiver', [0.35, 0.78, -1.75], { s: 0.85, solid: false, kind: 'inspect', id: 'radio', name: 'Radio del barco', sound: { kind: 'bell', groups: [3, 0, 1, 2], gap: 0.34, pause: 1.3 }, lines: [['Tú', '(Giro el dial. Suena la canción de siempre del barco, rota, en bucle.)'], ['', '[ ding ding ding · chssss… · ding · ding ding ]'], ['Tú', 'Tres notas, un silencio largo, una, dos. Luka dice que el barco tiene su propia canción. Y que abre puertas.']], dist: 0.6 }),
+      { type: 'phone', at: [-0.3, 0.78, -1.6], kind: 'phone', name: 'Tu móvil' },
+      { type: 'window', wall: 'n', at: [1.6, 1.6], w: 1.0, h: 0.6, view: 'paris', light: 0x6a9aff },
+      F([-0.05, 0.782, -1.45], 'canc', 'Nota de Luka', 'Compuerta', ['La compuerta se abre con la canción del barco.', 'Escucha la radio y cuenta.', 'El silencio largo vale cero.', '', '— L.'], { paper: '#e8f0ff', ink: '#1a2a4a' }),
+      { type: 'frame', wall: 'w', at: [0, 1.65, -0.6], w: 0.9, h: 0.6, text: ['#☠ ANARKA ☠', 'calaveras ... 0', 'tibias ........ 4', 'promesas .... 8'], textOpt: { bg: '#111', color: '#f2f2f2', size: 36, big: 44 }, kind: 'inspect', id: 'bandera', name: 'Bandera pirata de Anarka', focusY: 1.65, dist: 1.0, lines: [['Tú', 'Una bandera pirata cosida a mano, con cuentas absurdas: cero calaveras, cuatro tibias, ocho promesas.'], ['Eco de Anarka', '¡El cofre del barco se abre con mi bandera, marinera! En ese orden. Las promesas siempre al final.']] },
+      M2('treasure_chest', [-1.0, 0, 1.95], { rot: Math.PI, s: 0.8, kind: 'lock', id: 'cofreA', name: 'Cofre de Anarka (tres ruedas)', focusY: 0.6, code: '048', codeTitle: 'Cofre de Anarka · tres ruedas', hint: 'La bandera pirata de la pared: 0 calaveras, 4 tibias, 8 promesas.', lines: [['Tú', 'Monedas falsas, un parche, una brújula rota. Y un casete viejo, con una etiqueta escrita con mi letra.']] }),
+      { type: 'item', at: [-1.0, 0.55, 1.7], shape: 'box', color: 0x2a2a2a, kind: 'item', sealed: true, sealedBy: 'cofreA', name: 'Casete con tu voz', lines: [['Tú', '(Lo pongo en la radio.) Es mi voz. Habla bajito, como si alguien escuchara.'], ['Tú', '«Si me oyes, no te fíes de quien te ha guiado esta noche. No es quien crees. Yo tampoco lo era.»'], ['Tú', 'La cinta se corta. Lo último que se oye es una risa. También es mía.']] },
+      { type: 'item', at: [0.45, 0.82, -1.95], shape: 'ring', color: 0x5aa0ff, kind: 'item', name: 'Púa de guitarra de Luka', lines: [['Tú', 'Una púa azul, gastada de tanto tocar. Luka dice que cada persona tiene una canción.'], ['Tú', 'Una vez me dijo que la mía no la encontraba. Que sonaba a dos canciones a la vez.']] },
+      { type: 'item', at: [2.1, 0.55, 0.6], shape: 'paper', color: 0x2a1a3a, kind: 'item', name: 'Foto de Juleka', lines: [['Tú', 'Juleka, con su pelo morado tapándole medio ojo. Nunca sale bien en las fotos. Esta vez sí.'], ['Tú', 'Porque esta vez la que no sale bien soy yo: mi cara está borrosa. Solo la mía.']] },
+      { type: 'item', at: [-2.3, 0.5, 0.4], shape: 'feather', color: 0x1a1a1a, kind: 'item', name: 'Pañuelo pirata', lines: [['Eco de Anarka', '¡Ahoy! Bienvenida a bordo, marinera. ¿Otra vez por aquí? Siempre vienes a esta hora.'], ['Tú', 'Nunca he estado en este barco.']] },
+      { type: 'item', at: [2.4, 0.9, -1.7], shape: 'book', color: 0x3a5aaa, kind: 'item', name: 'Cuaderno de canciones', lines: [['Tú', 'Las canciones de Luka. Una se llama «La chica de las 23:12». Está sin terminar.'], ['Tú', 'El último verso: «nadie la recuerda de día / nadie la olvida de noche».']] },
+      { type: 'item', at: [0.9, 0.12, 1.5], shape: 'drop', color: 0x6a9aff, kind: 'item', hidden: true, name: 'Charco con tu reflejo', lines: [['Tú', 'A oscuras, en un charco del suelo, brilla mi reflejo. Me agacho a mirarlo.'], ['Tú', 'El reflejo no se agacha. Se queda de pie, mirándome desde abajo, quieto. Muy quieto.']] },
+      { type: 'graffiti', wall: 'e', at: [0, 1.7, -0.6], w: 1.4, hidden: true, text: ['DOS', 'CANCIONES'], color: '#6a9aff', size: 90 },
+      { type: 'door', wall: 's', at: [1.4, 0], code: true, kind: 'door', name: 'Compuerta a cubierta', color: 0x3a2a20, focusY: 1.1, tex: 'dark_wooden_planks', tint: 0x9a7a5a }
+    ] }),
+    start: { at: [0, 0.3], yaw: 0 },
+    objective: 'Busca lo que el barco recuerda de ti',
+    code: '3012', codeTitle: 'Compuerta · cuatro ruedas', codeObjective: 'Abre la compuerta (la canción de la radio)',
+    codeFamily: 'Luka te lo explicó: tres notas, silencio, una, dos. 3012.',
+    intro: [['Tú', 'El Liberty, el barco de los Couffaine, amarrado en el Sena. Se mece aunque no hay viento.'], ['Tú', 'Huele a río, a guitarra y a pintura vieja. Todo cruje. Todo parece estar escuchando.']],
+    allFound: [['Tú', 'La púa, la foto, el pañuelo, el cuaderno, el casete. Este barco me conoce mejor que yo.'], ['Tú', 'La compuerta: la canción de la radio.']],
+    locked: 'Aún no. El barco guarda algo más de ti.',
+    events: [
+      { on: 't:10', do: 'presence', text: 'El barco cruje con un ritmo. Tres, silencio, uno, dos. Como si tarareara.' },
+      { on: 't:45', do: 'say', lines: [['{p} (móvil)', 'Lin, escúchame bien: no abras el cofre. Lo que hay dentro no es para ti.']] },
+      { on: 'lock:cofreA', do: 'say', delay: 4, lines: [['{p} (móvil)', '¿Qué cofre? Lin, llevo media hora sin cobertura. Yo no te he escrito nada.'], ['Tú', 'Entonces, ¿quién me está guiando?']] },
+      { on: 'lock:cofreA', do: 'heartbeat', n: 7 },
+      { on: 'lock:cofreA', do: 'drain', dmg: 8, delay: 3 },
+      { on: 'dark', do: 'presence', delay: 2, text: 'A oscuras, el agua del río golpea el casco con suavidad. Toc. Toc. Como alguien que pide permiso.' },
+      { on: 'found', do: 'flicker', dur: 2 },
+      { on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }
+    ],
+    phone: [
+      { on: 'start', from: 'Marinette', delay: 3, msgs: ['lin dónde estás', 'he subido a la buhardilla y tu cama está hecha', 'como si nadie hubiera dormido nunca en ella'], replies: [
+        { t: 'Estoy en el barco de Luka.', then: [{ msgs: ['¿qué barco?', 'lin, luka está de gira con su madre desde hace un mes 😰'] }] },
+        { t: 'Ahora vuelvo. No te preocupes.', then: [{ msgs: ['vale', 'te dejo la luz encendida 🌸', 'por si acaso'] }] }] },
+      { on: 'item:3', from: 'Número oculto', msgs: ['¿Ya te sabes tu canción?', 'Son dos. Una es tuya. La otra es mía. 🦋'] }
+    ],
+    exitName: 'Compuerta'
+  };
+
+  // ---------- VII · Lo que cambia de forma (final) ----------
+  C = byId('forma'); C.num = 'VII';
+  C.room.objects.push(
+    F([-0.3, 0.792, -1.55], 'diarioPista', 'Pósit en la mesa', 'Para ti, Lin', ['El diario se abre con la hora', 'en que empezó todo.', '', 'Cuatro ruedas.', '(Ya la sabes. Te la han repetido toda la noche.)']),
+    M2('painted_wooden_cabinet', [-2.5, 0, -1.3], { rot: Math.PI / 2, s: 0.85, tint: 0xffd0e0, kind: 'lock', id: 'diario', name: 'Cajón con el diario de Lin (cuatro ruedas)', focusY: 0.9, code: '2312', codeTitle: 'Diario de Lin · cuatro ruedas', hint: 'La hora del primer mensaje de esta noche: 23:12. 2312.', lines: [['Tú', 'Un diario con mi nombre en la tapa. Con mi letra. No recuerdo haberlo comprado.']] }),
+    { type: 'item', at: [-2.15, 0.9, -1.3], shape: 'book', color: 0xffb0c8, kind: 'item', sealed: true, sealedBy: 'diario', name: 'Tu diario', lines: [['Tú', 'Páginas y páginas sobre esta noche. La buhardilla, la panadería, el atelier, el colegio, el barco. Con detalles que todavía no conocía cuando entré.'], ['Tú', 'La última página está escrita con prisa: «Si hay dos Marinette, la de verdad es la que no te pide nada».'], ['Tú', 'Debajo, con otra letra: «O no. Quién sabe. 🦋»']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:30', do: 'presence', text: 'En la foto de familia de la pared, el cuarto hueco ya no está vacío. Estás tú. Siempre has estado. ¿Verdad?' },
+    { on: 't:60', do: 'say', lines: [['{p} (móvil)', 'Coge la mano de Marinette. La que te llama por tu nombre. Esa es la buena.']] },
+    { on: 'lock:diario', do: 'heartbeat', n: 6 }
+  ]);
+  ENDINGS.tejado.text = ENDINGS.tejado.text.concat(['Al amanecer, Sabine sube un croissant a la buhardilla. La cama está hecha. Pone la bandeja encima, sonríe y dice: «Buenos días, Lin».', 'Nadie le contesta. Lo dice igual. Mañana también lo dirá.']);
+
+  CHAPTERS.splice(3, 0, COL);
+  CHAPTERS.splice(5, 0, LIB);
+  GAME.lore.forEach(l => { if (l.ch === 3) l.ch = 4; else if (l.ch === 4) l.ch = 6; });
+  GAME.lore.push(
+    { ch: 3, t: 'El colegio Françoise Dupont', text: 'El colegio de Marinette, Adrien, Alya y Nino, con su profesora Caline Bustier. Allí empezaron la mayoría de las akumatizaciones: un mal día, un enfado en clase y una mariposa en la ventana.' },
+    { ch: 5, t: 'El Liberty y los Couffaine', text: 'Anarka Couffaine vive con sus hijos, Luka y Juleka, en el Liberty, un barco amarrado en el Sena. Anarka habla como una pirata; Luka toca la guitarra y dice que cada persona tiene una canción; Juleka casi nunca sale bien en las fotos.' },
+    { ch: 2, t: 'Félix y los sentimonstruos', text: 'Félix Graham de Vanily, primo de Adrien, se hizo pasar por él más de una vez. Los sentimonstruos son seres creados con el Miraculous del Pavo Real a partir de un amok: pueden tener cualquier forma… incluida la de una persona.' }
+  );
+
+  // ---------- líneas de cada amigo ----------
+  const PL = PARTNER_LINES;
+  PL.buhardilla.adrien = [['Adrien (móvil)', 'Lin, ¿estás bien? Me ha llegado una foto tuya dormida desde un número oculto. Busca la caja y no te fíes de LB. Y no te fíes de nadie que te escriba desde mi número.']];
+  PL.estudio.adrien = [['Adrien (móvil)', 'Ese estudio es de Mr. Banana… ten cuidado con las cámaras, Lin. Algo te mira. Y si una pantalla te enseña dormida, no te quedes mirándola.']];
+  Object.assign(PL.buhardilla, {
+    marinette: [['Marinette (móvil)', '¡Hermanita! He oído ruido arriba. Mi portátil se abre con el nombre de la abuela que da la vuelta al mundo en moto. Y la trampilla, con el escaparate. Pero… ¿por qué sabes que tengo portátil?']],
+    alya: [['Alya (móvil)', 'Lin, tu móvil sale en el mapa de akumas 😳 La contraseña del portátil de Mari es la abuela Gina. Siempre. La trampilla: los precios del escaparate, de izquierda a derecha.']],
+    nino: [['Nino (móvil)', 'Colega, respira. Te pongo algo suave. El portátil de Mari: «gina», como su abuela. La trampilla: el escaparate, en orden. Tranqui.']],
+    felix: [['Félix (móvil)', 'Lin. Alguien ha hecho una copia de tu llave. Y de ti, quizá. El portátil se abre con el nombre de la abuela; la trampilla, con el escaparate. Es lo que haría cualquiera con dos dedos de frente.']]
+  });
+  Object.assign(PL.boulangerie, {
+    marinette: [['Marinette (móvil)', 'La panadería de papá y mamá. La caja usa el nombre de mamá para todo: Sabine. Hermanita… ¿tú te acuerdas de cuándo llegaste a casa? Yo no.']],
+    alya: [['Alya (móvil)', 'Panadería Tom & Sabine. La caja se abre con «sabine», lo sabe todo el barrio. Y mira bien las fotos de la pared, Lin. Algo no encaja.']],
+    nino: [['Nino (móvil)', 'Huele a croissant hasta por el móvil, colega. La caja: el nombre de Sabine. Y no comas nada de lo que haya en la vitrina.']],
+    felix: [['Félix (móvil)', 'La caja registradora usa el nombre de la madre. Previsible. Mira los álbumes. Las fotos se pueden fabricar. Igual que las personas.']]
+  });
+  Object.assign(PL.atelier, {
+    marinette: [['Marinette (móvil)', 'Estás en casa de Adrien?! La tableta de Nathalie se abre con el nombre de su madre: Emilie. Y la caja fuerte, con las notas que Adrien tocaba para ella.']],
+    alya: [['Alya (móvil)', 'La mansión Agreste. Exclusiva del siglo. La tableta: «emilie». La caja fuerte: las notas del piano en números. Graba todo, Lin. Por si acaso.']],
+    nino: [['Nino (móvil)', 'La casa de mi colega Adrien. Todo es por su madre: la tableta se abre con «emilie». La caja fuerte, con las notas del piano. Sol, mi, do, fa.']],
+    felix: [['Félix (móvil)', 'La casa de mi tío. Todo lo que hizo fue por Emilie: también la contraseña. Y si encuentras patrones de costura, no los toques. Uno tiene tus medidas.']]
+  });
+  Object.assign(PL.estudio, {
+    marinette: [['Marinette (móvil)', 'Mr. Banana va a decir que soy Ladybug, ¿verdad? No le creas. La terminal: el nombre en inglés de la de los capullos. El despacho: «Luxus» en el teclado del teléfono.']],
+    alya: [['Alya (móvil)', 'ESTÁS en el estudio de Mr. Banana. La terminal: «chrysalis». El despacho: L-U-X-U-S en el teclado del teléfono. Y no mires las pantallas mucho rato.']],
+    nino: [['Nino (móvil)', 'Colega, ese plátano me da mal rollo. La terminal: «chrysalis». El despacho: «Luxus» con las letras del teléfono. Y quédate quieta si notas que algo te busca.']],
+    felix: [['Félix (móvil)', 'Luxus Corp. Los conozco. La terminal se abre con «chrysalis»; el despacho, con el apellido en el teclado. Las cámaras no graban lo que pasa. Graban lo que ellos quieren.']]
+  });
+  Object.assign(PL.forma, {
+    marinette: [['Marinette (móvil)', 'Hermanita. Estoy en mi cuarto. No en el balcón. Si en el balcón hay alguien con mi cara… no soy yo. Te lo juro por Tikki. No le des la mano.']],
+    alya: [['Alya (móvil)', 'Lin. Te estoy viendo en el directo del balcón. Hay dos Marinette. Una lleva los pendientes al revés. No cojas ninguna mano.']],
+    nino: [['Nino (móvil)', 'Colega. Respira conmigo. Uno, dos. Si te tienden la mano, no la cojas. La salida buena es la que nadie te ofrece.']],
+    felix: [['Félix (móvil)', 'Sé lo que es una copia, Lin. Yo fui una. La copia siempre te tiende la mano primero. La salida de verdad nunca te espera.']]
+  });
+  PL.colegio = {
+    adrien: [['Adrien (móvil)', 'Lin, ¿estás en nuestro colegio? A esta hora? La puerta de clase se cierra a la hora de salida. Y no te sientes en la última fila. Nadie se sienta ahí.']],
+    luka: [['Luka (móvil)', 'Un colegio de noche suena hueco. Escucha. La pizarra te dice la hora de la puerta. Y la lista de clase, la de la caja.']],
+    kagami: [['Kagami (móvil)', 'Cuenta a los alumnos de la lista. Sin invitados. Esa es la caja. La puerta: la hora de salida. Y no preguntes por qué no estás en la lista. No ahora.']],
+    marinette: [['Marinette (móvil)', '¿Estás en MI clase?? La puerta: a las 16:30, como siempre. Y Lin… no mires mi pupitre. Por favor. Lo escribí un día raro.']],
+    alya: [['Alya (móvil)', 'Lin, la lista de clase. 24 alumnos. Lo he comprobado mil veces. La caja de la profe usa ese número. La puerta, la hora de salida: 16:30.']],
+    nino: [['Nino (móvil)', 'Colega, ¿has visto mi gorra? Da igual. La caja de la profe: los alumnos de la lista. La puerta: a las 16:30. Tranqui.']],
+    felix: [['Félix (móvil)', 'El colegio de mi primo. Las listas no mienten: mienten las personas que las escriben. Cuenta los alumnos para la caja; la puerta, la hora de salida.']]
+  };
+  PL.liberty = {
+    adrien: [['Adrien (móvil)', '¿El barco de Luka? Luka dice que el barco tiene su propia canción. Escucha la radio: la compuerta usa sus notas. Y el cofre de Anarka, su bandera.']],
+    luka: [['Luka (móvil)', 'Estás en mi barco. Pero yo estoy de gira, Lin. Escucha la radio: tres, silencio, uno, dos. Y la bandera de mi madre abre el cofre. No me preguntes cómo lo sé.']],
+    kagami: [['Kagami (móvil)', 'La radio emite un patrón. El silencio largo es cero. La bandera de la pared abre el cofre. Ejecuta, no pienses.']],
+    marinette: [['Marinette (móvil)', 'Hermanita, Luka no está en París. ¿Con quién estás? La compuerta va con la canción de la radio. El cofre, con la bandera de Anarka. Vuelve a casa. Por favor.']],
+    alya: [['Alya (móvil)', 'El Liberty sale en el mapa, pero el barco lleva un mes sin luz. Radio: cuenta las notas, el silencio es cero. Cofre: la bandera pirata.']],
+    nino: [['Nino (móvil)', 'La canción del barco, colega. La conozco: tres, pausa, una, dos. Esa es la compuerta. Y el cofre, los números de la bandera.']],
+    felix: [['Félix (móvil)', 'Un barco que recuerda. Qué poético. La radio abre la compuerta y la bandera, el cofre. Y no te fíes de ninguna voz grabada. Ni de la tuya.']]
+  };
+  CHAPTERS.forEach(c => { if (PL[c.id]) c.partner = PL[c.id]; });
+  CHAPTERS.forEach(c => c.events.forEach(e => { if (e.do === 'say' && e.lines && e.lines.some(l => /no te he escrito/i.test(l[1] || ''))) e.ach = 'gaslight'; }));
+})();
 </script>
 <script>'use strict';
 // =====================================================================
@@ -1303,7 +1592,7 @@ function updateMarks() {
   const k = D().marks; if (!level || !level.marks) return;
   for (const o of level.marks) {
     const sp = o._mark; let want = k;
-    const done = o.gone || (o.kind === 'inspect' && level.inspected.has(o.id || o.name)) || (o.kind === 'pc' && level.pcUnlocked) || (o.kind === 'door' && level.found < level.total);
+    const done = o.gone || (o.kind === 'inspect' && level.inspected.has(o.id || o.name)) || (o.kind === 'pc' && level.pcUnlocked) || (o.kind === 'door' && level.found < level.total) || (o.kind === 'lock' && o.opened);
     if (done || (o.hidden && !level.dark) || !o._g.visible || (o.fake && !D().fakeGlow)) want = 0;
     if (o.kind === 'inspect' && !o.read && !o.sound && k < 1) want *= 0.5; // en Normal solo brillan fuerte las pistas que importan
     o._g.getWorldPosition(_mp); _mp.y = (o.focusY !== undefined ? o.focusY : _mp.y + 0.1) + 0.14;
@@ -1443,6 +1732,7 @@ async function buildLevel(ci, prog) {
     g.position.set(x, y, z); group.add(g); o._g = g; o.pos = new THREE.Vector3(x, y, z);
     if (res.solid && !o.wall) { const [sw, sd] = res.solid; const c = Math.abs(Math.cos(g.rotation.y)), s = Math.abs(Math.sin(g.rotation.y)); const hw = (sw * c + sd * s) / 2, hd = (sw * s + sd * c) / 2; level.solids.push({ x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd }); }
     if (o.hidden) g.visible = false;
+    if (o.sealed) g.visible = false;
     if (o.kind === 'inspect' && !o.read && o.text && (o.type === 'note' || o.type === 'frame')) o.read = { style: o.type === 'note' ? 'postit' : 'bill', text: o.text.map(t => t.replace(/^#/, '')) };
     if (o.kind === 'item') { o.idx = itemIdx++; level.items.push(o); }
     if (o.kind) { o.focusY = o.focusY ?? (y + (o.type === 'item' ? 0.1 : 0.1)); g.traverse(n => { if (n.isMesh) { n.userData.o = o; level.inter.push(n); } }); }
@@ -1611,7 +1901,11 @@ function updateAch(dt) {
 }
 
 // ---------- FX de alucinación ----------
-const FX = { pulse: 0, flash: 0, shake: 0, words: [], nextWord: 2, detect: 0, hurt: 0, fire: 0, noise: null };
+const FX = { pulse: 0, words: [], nextWord: 2, detect: 0, hurt: 0, fire: 0, noise: null };
+(function softFX() { let f = 0, k = 0;
+  Object.defineProperty(FX, 'flash', { get() { return f; }, set(v) { f = v > f ? Math.min(f + (v - f) * 0.12, 0.08) : v; }, configurable: true });
+  Object.defineProperty(FX, 'shake', { get() { return k; }, set(v) { k = v > k ? Math.min(k + (v - k) * 0.12, 0.05) : v; }, configurable: true });
+})();
 (function () { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const id = g.createImageData(128, 128); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 40; } g.putImageData(id, 0, 0); FX.noise = c; })();
 function drawFX(dt, t) {
   const cv = $('#fx'), g = cv.getContext('2d'), w = cv.width, h = cv.height;
@@ -1662,7 +1956,7 @@ let gameT = 0, interactTarget = null, toastT = 0;
 function toast(msg, sec = 3) { const el = $('#toast'); el.innerHTML = fmt(msg); el.classList.add('on'); toastT = sec; }
 function objective() {
   if (!level) return ''; const C = level.C;
-  if (level.found < level.total) return `${C.objective} · ${level.found}/${level.total}` + (level.items.some(i => i.hidden && !i.gone) && level.found >= level.total - 1 ? ' · (algo solo se ve a oscuras)' : '');
+  if (level.found < level.total) return `${C.objective} · ${level.found}/${level.total}` + (level.items.some(i => i.hidden && !i.gone) && level.found >= level.total - 1 ? ' · (algo solo se ve a oscuras)' : '') + (level.items.some(i => i.sealed && !i.gone) && !level.items.some(i => !i.gone && !i.fake && !i.sealed && !i.hidden) ? ' · (lo que falta está bajo llave)' : '');
   if (!level.pcUnlocked && C.pc && C.pc.required !== false) return C.pc.objective || GAME.pcObjective || 'Entra en el ordenador';
   if (!level.solved) return (C.codeObjective || 'Abre la puerta') + ' · tus pistas están en Pausa';
   return C.final ? (C.finalObjective || 'Termina esto') : (C.exitObjective || 'Sal de aquí');
@@ -1735,6 +2029,7 @@ const Voice = {
 };
 Voice.init();
 // ---------- Eventos de miedo ----------
+AudioFX.stinger = function () { this.heartbeat && this.heartbeat(0.6); };
 const Events = {
   trigger(key) { const C = level && level.C; if (!C || !C.events) return; C.events.forEach((ev, i) => { if (ev.on === key && !level.fired.has(i)) { level.fired.add(i); setTimeout(() => this.run(ev), (ev.delay || 0) * 1000); } }); },
   tick(dt) { const C = level.C; level.evT += dt; (C.events || []).forEach((ev, i) => { if (ev.on && ev.on.startsWith('t:') && !level.fired.has(i) && level.evT >= +ev.on.slice(2)) { level.fired.add(i); this.run(ev); } }); },
@@ -1752,12 +2047,17 @@ const Events = {
     if (d === 'flicker') { level.flick = ev.dur || 1.6; AudioFX.burst(120, 2, 0.4, 0.15); }
     else if (d === 'blackout') { setLights(false); AudioFX.thud(); setTimeout(() => { if (level && !level.dark) setLights(true); }, (ev.dur || 3) * 1000); }
     else if (d === 'knock') { AudioFX.knock(ev.n || 3); }
-    else if (d === 'slam') { AudioFX.slam(); FX.shake = 0.6; }
+    else if (d === 'slam') { AudioFX.creak ? AudioFX.creak() : AudioFX.knock(1); }
     else if (d === 'voice') { Voice.say(ev.v); }
     else if (d === 'whisper') { AudioFX.whisper(); FX.words.push({ text: ev.text || pick(GLOBAL_WHISPERS), x: rand(0.2, 0.8) * $('#fx').width, y: rand(0.2, 0.8) * $('#fx').height, life: 0, max: 2.5, size: 28, rot: rand(-0.2, 0.2), col: GAME.css['--acc'] || '#fff' }); }
-    else if (d === 'stinger') { AudioFX.stinger(); FX.flash = 0.25; FX.shake = 0.5; state.sanity -= ev.dmg || 8; }
+    else if (d === 'stinger') { this.run({ do: 'heartbeat', n: 5 }); state.sanity = Math.max(5, state.sanity - (ev.dmg || 6)); }
     else if (d === 'msg') { toast(ev.text, ev.dur || 3); }
-    else if (d === 'say') { if (!Dlg.active) Dlg.start(ev.lines); }
+    else if (d === 'say') { if (!Dlg.active) Dlg.start(ev.lines); else setTimeout(() => this.run(ev), 2500); }
+    else if (d === 'rewrite') { const o = level.objs.find(x => x.id === ev.id); if (o) { if (ev.read) o.read = Object.assign({}, o.read || {}, ev.read); if (ev.lines) o.lines = ev.lines; level.inspected.delete(o.id || o.name); o._reading = false; } AudioFX.whisper(); FX.pulse = Math.max(FX.pulse, 0.3); }
+    else if (d === 'presence') { AudioFX.creak && AudioFX.creak(); if (ev.text) toast(fmt(ev.text), ev.dur || 5); state.sanity = Math.max(5, state.sanity - (ev.dmg || 3)); FX.pulse = Math.max(FX.pulse, 0.25); }
+    else if (d === 'heartbeat') { let n = ev.n || 4; const beat = () => { if (n-- <= 0 || state.screen !== 'game') return; AudioFX.heartbeat && AudioFX.heartbeat(0.55); setTimeout(beat, 750); }; beat(); if (ev.text) toast(fmt(ev.text), 4); }
+    else if (d === 'drain') { state.sanity = Math.max(5, state.sanity - (ev.dmg || 5)); if (ev.text) toast(fmt(ev.text), 4); }
+    else if (d === 'figure' && !GAME.allowFigures) { this.run({ do: 'presence', text: pick(GAME.presence || ['Notas que alguien te mira. Cuando te giras, no hay nadie. Nunca hay nadie.']), dmg: ev.dmg || 3 }); }
     else if (d === 'figure') {
       const p = this.spot(ev.at || 'behind'); const g = new THREE.Group(); const em = new THREE.MeshBasicMaterial({ color: ev.eyes || 0xff2a6d, transparent: true, opacity: 0.9 });
       for (const sx of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 6), em); e.position.set(sx * 0.07, 1.62, 0); g.add(e); }
@@ -1770,6 +2070,7 @@ const Events = {
     } else if (d === 'show') { const o = level.objs.find(x => x.id === ev.id); if (o) { o._g.visible = true; o.hidden = false; } }
     else if (d === 'stalker') { if (level.stalker) { level.stalker.active = true; placeStalker(); AudioFX.slam(); toast(ev.text || '', 2.5); } }
     if (ev.toast) toast(ev.toast, 3);
+    if (ev.ach) unlock(ev.ach);
   }
 };
 function updateFigures(dt) {
@@ -1809,7 +2110,7 @@ function updateStalker(dt) {
   if (S2.i >= C.steps - 2 && (S2.hb = (S2.hb || 0) - dt) < 0) { AudioFX.heartbeat(0.45); S2.hb = 0.6; }
 }
 function stalkerCatch() {
-  const S2 = level.stalker; AudioFX.stinger(); AudioFX.boom(); FX.flash = 0.9; FX.shake = 1.2; unlock('hunted');
+  const S2 = level.stalker; AudioFX.heartbeat && AudioFX.heartbeat(0.7); unlock('hunted');
   if (PC.open) PC.close(); if (Phone.open) Phone.toggle(false);
   Dlg.start(pick(GAME.hunter.caught), () => { state.sanity = Math.max(5, state.sanity - 30); state.clock += (GAME.hunter.timeCost || 600) * D().time; S2.i = 0; S2.t = 0; });
 }
@@ -1943,6 +2244,14 @@ function interact() {
     addClue(o);
     if (o.read && !o._reading) { o._reading = true; Read.show(o, () => { o._reading = false; if (!o.lines || !o.lines.length) { Phone.trigger('look:' + o.id); Events.trigger('look:' + o.id); if (o.ach) unlock(o.ach); return; } interactTarget = o; doInspect(o); }); return; }
     doInspect(o);
+  } else if (o.kind === 'lock') {
+    AudioFX.ui && AudioFX.ui(); addClue(o);
+    if (o.opened) { Dlg.start(o.openLines || [[GAME.hero.name, 'Ya está abierto. Lo que había dentro ya es tuyo.']]); return; }
+    const openIt = () => Keypad.show(o.codeTitle || o.name, o.code, ok => { if (!ok) return; o.opened = true; AudioFX.creak && AudioFX.creak();
+      level.objs.forEach(x => { if (x.sealedBy === o.id) { x.sealed = false; x._g.visible = true; } });
+      unlock('lock_any'); if (o.ach) unlock(o.ach); $('#obj').textContent = objective();
+      Dlg.start(o.lines || [[GAME.hero.name, 'Clac. Se abre.']], () => { Events.trigger('lock:' + o.id); Phone.trigger && Phone.trigger('lock:' + o.id); }); });
+    if (o.before && !o._seen) { o._seen = true; Dlg.start(o.before, openIt); } else openIt();
   } else if (o.kind === 'npc') { Dlg.start(o.lines, () => { if (o.ach) unlock(o.ach); }, { pos: focusOf(o), dist: o.dist || 1.1 }); }
   else if (o.kind === 'pc') { PC.show(o); }
   else if (o.kind === 'phone') { Phone.toggle(true); }
@@ -1959,9 +2268,11 @@ const PARTNER = () => (GAME.partners || []).find(p => p.id === state.partner);
 function fmtP(t) { const p = PARTNER(); return String(t).replace(/\{p\}/g, p ? p.name : 'nadie').replace(/\{pp\}/g, p ? p.pet : 'tú'); }
 const Help = {
   n: 0, idle: 0, offered: false,
-  reset() { this.n = 0; this.idle = 0; this.offered = false; },
+  reset() { this.n = 0; this.ln = 0; this.idle = 0; this.offered = false; },
   next() { // pista fácil según el punto exacto en el que estás
-    const C = level.C, it = level.items.find(i => !i.gone && !i.fake && !i.hidden) || level.items.find(i => !i.gone && !i.fake);
+    const C = level.C, it = level.items.find(i => !i.gone && !i.fake && !i.hidden && !i.sealed) || level.items.find(i => !i.gone && !i.fake && !i.sealed);
+    if (!it) { const sl = level.items.find(i => !i.gone && !i.fake && i.sealed); const L = sl && level.objs.find(x => x.id === sl.sealedBy && !x.opened);
+      if (L) { this.ln = (this.ln || 0) + 1; return this.ln < 2 ? (L.hint || `Lo que te falta está dentro de «${L.name}». La combinación está escrita en algún papel de esta sala.`) : `«${L.name}» se abre con ${L.code}.`; } }
     if (it) return it.hint || `Te falta «${it.name}». ${it.hidden ? 'Solo aparece con la luz apagada: apágala (busca el interruptor o el flexo) y mira el suelo y las paredes.' : 'Está en esta sala: busca el brillo y acércate con WASD.'}`;
     if (C.pc && !level.pcUnlocked && C.pc.required !== false) { this.n++; return this.n < 2 ? (C.pc.hint || 'Hay algo que pide una contraseña. La pista está escrita en esta sala.') : `Escribe «${C.pc.password}» en ${C.pc.title || 'el ordenador'}.`; }
     if (!level.solved && C.code) { this.n++; return this.n < 2 ? (C.codeHelp || C.codeFamily || 'La puerta tiene un código. Lee los papeles y escucha los sonidos de la sala.').replace(/^[^:]*: /, '') : `El código de la puerta es ${C.code}.`; }
@@ -2106,7 +2417,7 @@ function togglePause(force) {
 // ---------- Menú principal ----------
 const MENU = [
   { id: 'start', label: () => state.maxChapter > 0 ? 'Continuar' : (GAME.startLabel || 'Empezar juego'), desc: () => state.maxChapter > 0 ? `Vuelve a la noche justo donde la dejaste: ${CHAPTERS[state.chapter].title}.` : GAME.menuDesc.start, act: () => { AudioFX.init(); if (!state.diffChosen) { openPanel('diff', true); return; } if (GAME.partners && !state.partner) { openPanel('partner', true); return; } state.fromMenu = true; Phone.resetAll(); startChapter(state.chapter || 0); } },
-  { id: 'partner', label: () => 'Tu pareja', badge: () => (PARTNER() || {}).name || '—', desc: () => 'Elige de quién eres pareja. Te guiará por el móvil en cada capítulo.', act: () => openPanel('partner') },
+  { id: 'partner', label: () => GAME.partnerLabel || 'Tu pareja', badge: () => (PARTNER() || {}).name || '—', desc: () => GAME.partnerMenuDesc || 'Elige de quién eres pareja. Te guiará por el móvil en cada capítulo.', act: () => openPanel('partner') },
   { id: 'diff', label: () => 'Dificultad', badge: () => D().name, desc: () => D().desc, act: () => openPanel('diff') },
   { id: 'codice', label: () => GAME.loreName || 'Códice', badge: () => `${loreUnlocked().length}/${(GAME.lore || []).length}`, desc: () => 'El lore del mundo: personajes, lugares y lo que pasó antes de esta noche.', act: () => openPanel('codice') },
   { id: 'chapters', label: 'Capítulos', badge: () => `${Math.min(state.maxChapter + 1, CHAPTERS.length)}/${CHAPTERS.length}`, desc: () => GAME.menuDesc.chapters, act: () => openPanel('chapters') },
