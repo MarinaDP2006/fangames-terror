@@ -1846,7 +1846,7 @@ const Dlg = {
   showChoice(ch) {
     releaseLock(); this.typing = false; $('#dlg').dataset.who = 'accent'; $('#dlgWho').textContent = fmt(ch.who || ''); $('#dlgText').textContent = fmt(ch.text);
     const box = $('#dlgChoices'); box.innerHTML = '';
-    ch.options.forEach(o => { const b = document.createElement('button'); b.textContent = fmt(o.t); b.onclick = ev => { ev.stopPropagation(); box.innerHTML = ''; this.end(); if (o.ch !== undefined) goChapter(o.ch); else showEnding(o.end); }; box.appendChild(b); });
+    ch.options.forEach(o => { const b = document.createElement('button'); b.textContent = fmt(o.t); b.onclick = ev => { ev.stopPropagation(); box.innerHTML = ''; this.end(); if (o.go) o.go(); else if (o.ch !== undefined) goChapter(o.ch); else if (o.end !== undefined) showEnding(o.end); }; box.appendChild(b); });
   },
   update(dt) {
     if (!this.active || !this.typing) return;
