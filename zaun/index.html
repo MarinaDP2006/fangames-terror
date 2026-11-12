@@ -100,10 +100,11 @@ body:not(.inmenu) .tr{display:none}
 #hintbar span{display:flex;align-items:center}
 body:not(.playing) #hintbar{display:none}
 @media (pointer:coarse){#hintbar{display:none!important}}
-#cross{position:fixed;left:50%;top:50%;width:5px;height:5px;margin:-2.5px;border-radius:50%;background:rgba(233,228,218,.6);z-index:3;display:none;pointer-events:none;transition:transform .15s}
-#cross.hot{transform:scale(2.2);background:var(--acc)}
+#cross{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 0 1.5px rgba(0,0,0,.65);z-index:3;display:none;pointer-events:none;transition:background .15s}
+#cross::after{content:'';position:absolute;inset:-8px;border:1.5px solid rgba(255,255,255,.35);border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.35);transition:inset .15s,border-color .15s}
+#cross.hot{background:var(--acc)}#cross.hot::after{inset:-13px;border-color:var(--acc);border-width:2px}
 body.playing #cross{display:block}
-#clickHint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;display:none;pointer-events:none;background:rgba(10,10,10,.75);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px 18px;font:15px system-ui,sans-serif}
+#clickHint{position:fixed;left:50%;top:64%;transform:translate(-50%,-50%);z-index:3;display:none;pointer-events:none;background:rgba(10,10,10,.75);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px 18px;font:15px system-ui,sans-serif}
 body.playing:not(.locked) #clickHint{display:flex;align-items:center;gap:10px}
 body.playing.dlg #clickHint{display:none}
 @media (pointer:coarse){body.playing #clickHint{display:none!important}}
@@ -126,7 +127,8 @@ body.playing #prompt.on{display:block}
 #dlgHint kbd{height:18px;min-width:18px;font-size:10px}
 #dlgChoices{display:flex;flex-direction:column;gap:6px;margin-top:12px}
 #dlgChoices button{padding:11px;border:1px solid var(--acc);font-size:16px;text-align:left;background:rgba(0,0,0,.4)}
-#dlgChoices button:hover{background:rgba(255,255,255,.08)}
+#dlgChoices button:hover,#dlgChoices button.sel{background:rgba(255,255,255,.08)}
+#dlgChoices button.sel{box-shadow:inset 3px 0 0 var(--acc)}
 
 /* ordenador */
 #pc{position:fixed;inset:0;z-index:19;display:none;place-items:center;background:rgba(0,0,0,.55)}
@@ -1195,6 +1197,42 @@ const AudioFX = {
   }
 };
 
+// ---------- Sonidos más realistas (golpes con ataque seco, pasos según el suelo, papel, madera) ----------
+Object.assign(AudioFX, {
+  hit(freq, q, dur, vol, when = 0, type = 'bandpass', att = 0.002) {
+    if (!this.ctx) return; const c = this.ctx, t = c.currentTime + when;
+    const s = c.createBufferSource(); s.buffer = this.noise; s.playbackRate.value = rand(0.85, 1.15);
+    const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+    const g = c.createGain(); s.connect(f); f.connect(g); g.connect(this.dry);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + att); g.gain.exponentialRampToValueAtTime(0.0001, t + att + dur);
+    s.start(t, rand(0, 1.5)); s.stop(t + att + dur + 0.1);
+  },
+  step(run) {
+    const fl = (level && level.R && level.R.floor) || 'parquet', v = run ? 1.35 : 1, side = (this._foot = !this._foot) ? 1 : 0.9;
+    const hard = /tile|stone|marble|metal|concrete|baldosa|piedra|metal/i.test(fl), metal = /metal|grate|rejilla/i.test(fl);
+    this.hit(hard ? 380 : 210, 0.9, 0.07, 0.16 * v * side, 0, 'lowpass');                 // talón
+    this.hit(hard ? 1400 : 650, hard ? 2.2 : 1.4, 0.05, 0.05 * v, 0.012);                    // cuerpo del golpe
+    this.hit(rand(2600, 3600), 0.7, run ? 0.07 : 0.1, 0.018 * v, 0.035);                     // roce de la suela
+    if (metal) this.tone(rand(420, 520), 'triangle', 0.18, 0.012 * v, 0.005, null, rand(-15, 15));
+    if (!hard && Math.random() < 0.07) this.creak();                                         // tabla que cruje
+  },
+  paper() {
+    for (let i = 0; i < 8; i++) this.hit(rand(2500, 6500), 2, rand(0.02, 0.05), rand(0.025, 0.06), rand(0, 0.38));
+    this.hit(1300, 0.5, 0.32, 0.02, 0.02, 'bandpass', 0.04);
+  },
+  knock(n = 3) {
+    for (let i = 0; i < n; i++) { const w = i * 0.38 + rand(-0.02, 0.02);
+      this.hit(380, 1, 0.09, 0.5, w, 'lowpass'); this.tone(185, 'sine', 0.16, 0.32, w, 140); this.hit(1150, 4, 0.04, 0.12, w); }
+  },
+  creak() { // stick-slip de una bisagra o una tabla
+    const base = rand(140, 230), n = 14 + (Math.random() * 10 | 0);
+    for (let i = 0; i < n; i++) { const w = i * rand(0.03, 0.045), f = base * (1 + Math.sin(i / n * 3.14) * 0.35);
+      this.tone(f, 'sawtooth', 0.045, 0.014, w, f * 0.9, 0, 1400); this.hit(f * 6, 8, 0.03, 0.01, w); }
+  },
+  heartbeat(v = 0.5) { this.tone(58, 'sine', 0.18, v, 0, 36); this.hit(90, 1, 0.1, v * 0.5, 0, 'lowpass'); this.tone(52, 'sine', 0.2, v * 0.7, 0.24, 34); this.hit(80, 1, 0.1, v * 0.35, 0.24, 'lowpass'); },
+  unlock() { this.hit(3200, 6, 0.02, 0.12); this.hit(1800, 5, 0.03, 0.1, 0.09); this.tone(900, 'triangle', 0.08, 0.03, 0.09, 700); },
+  drip() { const f = rand(900, 1700); this.tone(f, 'sine', 0.09, 0.05, 0, f * 0.3); this.tone(f * 1.9, 'sine', 0.05, 0.012, 0.005, f * 0.6); this.hit(5000, 3, 0.01, 0.01, 0); }
+});
 // ---------- Three.js ----------
 let renderer, scene, camera, clock;
 function initGL() {
@@ -1544,9 +1582,9 @@ function updateMarks() {
     const done = o.gone || (o.kind === 'inspect' && level.inspected.has(o.id || o.name)) || (o.kind === 'pc' && level.pcUnlocked) || (o.kind === 'door' && level.found < level.total) || (o.kind === 'lock' && o.opened);
     if (done || (o.hidden && !level.dark) || !o._g.visible || (o.fake && !D().fakeGlow)) want = 0;
     if (o.kind === 'inspect' && !o.read && !o.sound && k < 1) want *= 0.5; // en Normal solo brillan fuerte las pistas que importan
-    o._g.getWorldPosition(_mp); _mp.y = (o.focusY !== undefined ? o.focusY : _mp.y + 0.1) + 0.14;
+    _mp.copy(objCenter(o)); _mp.y += Math.min(0.35, o._r * 0.7) + 0.08; const helpMe = o === level.helpFocus && level.helpT > 0 && !done; if (helpMe) want = 1;
     sp.position.copy(_mp); sp.material.opacity = want * (0.55 + Math.sin(T * 3 + _mp.x * 5) * 0.3);
-    sp.scale.setScalar(0.07 + Math.sin(T * 3 + _mp.z) * 0.015);
+    sp.scale.setScalar(helpMe ? 0.16 + Math.sin(T * 6) * 0.04 : 0.07 + Math.sin(T * 3 + _mp.z) * 0.015);
     if (o.fake && D().fakeGlow) sp.material.color.set(0x55ff88);
   }
 }
@@ -1679,6 +1717,10 @@ async function buildLevel(ci, prog) {
     if (o.wall) { const off = 0.02; if (o.wall === 'n') { z = -D / 2 + off; g.rotation.y = 0; } if (o.wall === 's') { z = D / 2 - off; g.rotation.y = Math.PI; } if (o.wall === 'w') { x = -W / 2 + off; g.rotation.y = Math.PI / 2; } if (o.wall === 'e') { x = W / 2 - off; g.rotation.y = -Math.PI / 2; } }
     else if (o.rot !== undefined && o.type !== 'phone') g.rotation.y = o.rot;
     g.position.set(x, y, z); group.add(g); o._g = g; o.pos = new THREE.Vector3(x, y, z);
+    if (!(res.solid && !o.wall) && o.kind !== 'item' && o.kind !== 'door' && o.type !== 'rug' && o.type !== 'ceiling' && !o.hidden && !o.sealed) { // caja real del mueble
+      g.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g);
+      if (!b.isEmpty() && b.min.y < 0.35 && b.max.y > 0.45) { const sx = b.max.x - b.min.x, sz = b.max.z - b.min.z; if (sx > 0.25 && sz > 0.2 && sx < W * 0.7 && sz < D * 0.7) level.solids.push({ x0: b.min.x + 0.04, x1: b.max.x - 0.04, z0: b.min.z + 0.04, z1: b.max.z - 0.04, auto: true }); }
+    }
     if (res.solid && !o.wall) { const [sw, sd] = res.solid; const c = Math.abs(Math.cos(g.rotation.y)), s = Math.abs(Math.sin(g.rotation.y)); const hw = (sw * c + sd * s) / 2, hd = (sw * s + sd * c) / 2; level.solids.push({ x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd }); }
     if (o.hidden) g.visible = false;
     if (o.sealed) g.visible = false;
@@ -1690,7 +1732,7 @@ async function buildLevel(ci, prog) {
   level.total = level.items.filter(i => !i.fake).length;
   if (C.stalker) level.stalker = { i: 0, t: 0, active: false };
   const st = C.start || { at: [0, 0], yaw: 0 };
-  P.pos.set(st.at[0], 0, st.at[1]); P.checkpoint.copy(P.pos); P.seated = true; P.eyeY = 1.2;
+  P.pos.set(st.at[0], 0, st.at[1]); P.pos.copy(freeSpot(P.pos.x, P.pos.z)); P.checkpoint.copy(P.pos); P.seated = true; P.eyeY = 1.2;
   camS.yaw = st.yaw || 0; camS.pitch = st.pitch ?? 0.62;
   if (!P.light) { P.light = new THREE.PointLight(0xffe0c0, 0.12, 4, 2); scene.add(P.light); }
   arms = null;
@@ -1716,6 +1758,13 @@ addEventListener('keydown', e => {
   if (state.screen !== 'game') return;
   if (e.code === 'Escape' || e.code === 'KeyP') { if (Phone.open) Phone.toggle(false); else if (Dlg.active && Dlg.inspect) { Dlg.end(); } else if (!Dlg.active) togglePause(); e.preventDefault(); return; }
   if (state.paused) return;
+  if (Dlg.choosing()) { // elegir con el teclado: 1-9, W/S o flechas, y E/Enter/Espacio para confirmar
+    const n = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
+    if (n) { e.preventDefault(); Dlg.pick(+n[1] - 1); return; }
+    if (['KeyW', 'ArrowUp'].includes(e.code)) { e.preventDefault(); Dlg.move(-1); return; }
+    if (['KeyS', 'ArrowDown'].includes(e.code)) { e.preventDefault(); Dlg.move(1); return; }
+    if (['KeyE', 'Enter', 'Space'].includes(e.code)) { e.preventDefault(); Dlg.pick(); return; }
+  }
   if (Call.ringing) { if (e.code === 'Enter' || e.code === 'KeyE') Call.accept(); if (e.code === 'Backspace' || e.code === 'KeyX') Call.decline(); e.preventDefault(); return; }
   if (e.code === 'KeyQ' || e.code === 'Tab') { e.preventDefault(); Phone.toggle(); return; }
   if (Phone.open && /^Digit[1-4]$/.test(e.code)) { Phone.reply(+e.code.slice(-1) - 1); return; }
@@ -1776,7 +1825,7 @@ const Dlg = {
   start(lines, cb, inspect) {
     this.queue = lines.slice(); this.cb = cb; this.active = true; this.inspect = inspect || null;
     $('#dlg').classList.add('on'); $('#dlg').classList.toggle('inspect', !!inspect); document.body.classList.add('dlg'); $('#prompt').classList.remove('on');
-    $('#dlgHint').innerHTML = inspect ? '<kbd>Esc</kbd> Cerrar · <kbd>E</kbd> Seguir' : '<kbd>E</kbd> Seguir';
+    this.opts = null; $('#dlgHint').innerHTML = inspect ? '<kbd>Esc</kbd> Cerrar · <kbd>E</kbd> Seguir' : '<kbd>E</kbd> Seguir';
     this.next();
   },
   next() {
@@ -1795,7 +1844,19 @@ const Dlg = {
   showChoice(ch) {
     releaseLock(); this.typing = false; $('#dlg').dataset.who = 'accent'; $('#dlgWho').textContent = fmt(ch.who || ''); $('#dlgText').textContent = fmt(ch.text);
     const box = $('#dlgChoices'); box.innerHTML = '';
-    ch.options.forEach(o => { const b = document.createElement('button'); b.textContent = fmt(o.t); b.onclick = ev => { ev.stopPropagation(); box.innerHTML = ''; this.end(); if (o.go) o.go(); else if (o.ch !== undefined) goChapter(o.ch); else if (o.end !== undefined) showEnding(o.end); }; box.appendChild(b); });
+    this.opts = ch.options; this.sel = 0;
+    $('#dlgHint').innerHTML = IS_TOUCH ? 'Toca una opción' : '<kbd>1</kbd>–<kbd>' + ch.options.length + '</kbd> o <kbd>W</kbd>/<kbd>S</kbd> + <kbd>E</kbd> Elegir';
+    ch.options.forEach((o, i) => { const b = document.createElement('button'); b.textContent = (IS_TOUCH ? '' : (i + 1) + '. ') + fmt(o.t); if (i === 0) b.classList.add('sel'); b.onclick = ev => { ev.stopPropagation(); this.pick(i); }; box.appendChild(b); });
+  },
+  choosing() { return this.active && !!this.opts && $('#dlgChoices').children.length > 0; },
+  move(d) { if (!this.choosing()) return; const bs = $('#dlgChoices').children; this.sel = (this.sel + d + bs.length) % bs.length; [...bs].forEach((b, i) => b.classList.toggle('sel', i === this.sel)); AudioFX.click && AudioFX.click(); },
+  pick(i) {
+    if (!this.choosing()) return; const o = this.opts[i === undefined ? this.sel : i]; if (!o) return;
+    $('#dlgChoices').innerHTML = ''; this.opts = null; this.end();
+    try { if (o.go) o.go(); else if (o.ch !== undefined) goChapter(o.ch); else if (o.end !== undefined) showEnding(o.end); }
+    catch (err) { console.error(err); }
+    // Volver a capturar el ratón para que puedas seguir mirando sin tener que hacer clic otra vez
+    if (!IS_TOUCH && state.screen === 'game' && !state.paused && document.pointerLockElement !== gl) { try { const r = gl.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (err) {} }
   },
   update(dt) {
     if (!this.active || !this.typing) return;
@@ -1803,7 +1864,7 @@ const Dlg = {
     $('#dlgText').textContent = this.full.slice(0, Math.floor(this.shown));
     if (this.shown >= this.full.length) this.typing = false;
   },
-  end() { this.active = false; this.inspect = null; $('#dlg').classList.remove('on', 'inspect'); document.body.classList.remove('dlg'); const cb = this.cb; this.cb = null; if (cb) cb(); }
+  end() { this.active = false; this.opts = null; this.inspect = null; $('#dlg').classList.remove('on', 'inspect'); document.body.classList.remove('dlg'); const cb = this.cb; this.cb = null; if (cb) cb(); }
 };
 $('#dlg').addEventListener('pointerdown', e => { e.stopPropagation(); Dlg.advance(); });
 
@@ -1910,18 +1971,38 @@ function objective() {
   if (!level.solved) return (C.codeObjective || 'Abre la puerta') + ' · tus pistas están en Pausa';
   return C.final ? (C.finalObjective || 'Termina esto') : (C.exitObjective || 'Sal de aquí');
 }
-const RC = new THREE.Raycaster(); RC.far = 2.6; const V2 = new THREE.Vector2(0, 0);
+const RC = new THREE.Raycaster(); RC.far = 3.0; const V2 = new THREE.Vector2(0, 0);
+const _bc = new THREE.Vector3(), _cd = new THREE.Vector3(), _cf = new THREE.Vector3();
+function objCenter(o) { // centro real de la malla (el punto «at» no siempre coincide con lo que se ve)
+  if (!o._c) { const b = new THREE.Box3().setFromObject(o._g); if (b.isEmpty()) { o._c = focusOf(o); o._r = 0.15; } else { o._c = b.getCenter(new THREE.Vector3()); o._r = clamp(b.getSize(_bc).length() / 2, 0.08, 0.6); } }
+  return o._c;
+}
+function pickable(o) { return !!o && !o.gone && !o.sealed && o._g.visible && !(o.hidden && !level.dark); }
 function pickTarget() {
   RC.setFromCamera(V2, camera);
-  const hits = RC.intersectObjects(level.inter, false);
-  for (const h of hits) { const o = h.object.userData.o; if (!o || o.gone || !o._g.visible) continue; return o; }
-  return null;
+  const hits = RC.intersectObjects(level.inter, false); let first = null;
+  for (const h of hits) {
+    const o = h.object.userData.o; if (!pickable(o)) continue;
+    if (!first) { if (o.kind === 'item') return o; first = { o, d: h.distance }; continue; }
+    if (o.kind === 'item' && h.distance - first.d < 0.7) return o; // un objeto justo detrás de una nota, caja o lámpara: gana el objeto
+  }
+  if (first) return first.o;
+  // ayuda de puntería: si no das justo en la malla, vale con apuntar cerca
+  camera.getWorldDirection(_cf); let best = null, bestK = 1;
+  for (const o of level.objs) {
+    if (!o.kind || !pickable(o)) continue;
+    const c = objCenter(o); _cd.copy(c).sub(camera.position); const d = _cd.length(); if (d > 2.9 || d < 0.05) continue;
+    const ang = Math.acos(clamp(_cf.dot(_cd.divideScalar(d)), -1, 1)), tol = Math.atan(o._r / d) + 0.06;
+    const k = ang / tol + (o.kind === 'item' ? 0 : 0.15); if (k < bestK) { bestK = k; best = o; }
+  }
+  return best;
 }
 const _fw = new THREE.Vector3(), _to = new THREE.Vector3();
 function inView(pos, tol = 0.55) {
   camera.getWorldDirection(_fw); _to.copy(pos).sub(camera.position); const d = _to.length(); _to.normalize();
   return _fw.dot(_to) > Math.cos(tol);
 }
+function freeSpot(x0, z0) { if (!blocked(x0, z0)) return new THREE.Vector3(x0, 0, z0); for (let r = 0.15; r < 4; r += 0.15) for (let a = 0; a < 24; a++) { const x = x0 + Math.sin(a / 24 * 6.2832) * r, z = z0 + Math.cos(a / 24 * 6.2832) * r; if (!blocked(x, z)) return new THREE.Vector3(x, 0, z); } return new THREE.Vector3(x0, 0, z0); }
 function blocked(x, z) {
   const R = level.R, r = 0.28;
   if (x < -R.w / 2 + r || x > R.w / 2 - r || z < -R.d / 2 + r || z > R.d / 2 - r) return true;
@@ -2132,7 +2213,7 @@ function updateGame(dt) {
   if (mag > 0.05) {
     P.seated = false; const spd = (input.run ? 2.4 : 1.45) * (zoomHeld ? 0.5 : 1);
     const nx = P.pos.x + mx * spd * dt, nz = P.pos.z + mz * spd * dt;
-    if (!blocked(nx, P.pos.z)) P.pos.x = nx; if (!blocked(P.pos.x, nz)) P.pos.z = nz;
+    const stuck = blocked(P.pos.x, P.pos.z); if (stuck || !blocked(nx, P.pos.z)) P.pos.x = nx; if (stuck || !blocked(P.pos.x, nz)) P.pos.z = nz;
     P.walk += dt * spd * 3; P.stepT -= dt * spd; if (P.stepT < 0) { AudioFX.step(input.run); P.stepT = 0.9; }
   } else P.walk *= 0.85;
   P.eyeY = lerp(P.eyeY, P.seated ? 1.2 : 1.62, Math.min(1, dt * 3));
@@ -2155,7 +2236,7 @@ function updateGame(dt) {
   $('#btnAct').classList.toggle('hot', !!interactTarget); $('#cross').classList.toggle('hot', !!interactTarget);
   if (GAME.ability) { const el = $('#abil'); el.classList.toggle('ready', Ab.cd <= 0); el.querySelector('i').textContent = Ab.cd > 0 ? Math.ceil(Ab.cd) + ' s' : 'listo'; }
   if (state._san !== undefined) { const dS = state.sanity - state._san; if (dS < 0) state.sanity = state._san + dS * D().dmg; else if (dS > 0) state.sanity = state._san + dS * D().regen; }
-  state.sanity = clamp(state.sanity, 0, 100); state._san = state.sanity; updateMarks(); Help.tick(dt); Voice.tick(dt); if (state.sanity <= 0) die();
+  state.sanity = clamp(state.sanity, 0, 100); state._san = state.sanity; if (level.helpT > 0) level.helpT -= dt; updateMarks(); Help.tick(dt); Voice.tick(dt); if (state.sanity <= 0) die();
   $('#obj').textContent = objective();
   tickClock(dt);
   AudioFX.update(dt, { sanity: state.sanity, playing: true, musicBox: 0.35 });
@@ -2197,7 +2278,7 @@ function interact() {
     AudioFX.ui && AudioFX.ui(); addClue(o);
     if (o.opened) { Dlg.start(o.openLines || [[GAME.hero.name, 'Ya está abierto. Lo que había dentro ya es tuyo.']]); return; }
     const openIt = () => Keypad.show(o.codeTitle || o.name, o.code, ok => { if (!ok) return; o.opened = true; AudioFX.creak && AudioFX.creak();
-      level.objs.forEach(x => { if (x.sealedBy === o.id) { x.sealed = false; x._g.visible = true; } });
+      level.objs.forEach(x => { if (x.sealedBy === o.id) { x.sealed = false; x._g.visible = true; } }); AudioFX.unlock && AudioFX.unlock();
       unlock('lock_any'); if (o.ach) unlock(o.ach); $('#obj').textContent = objective();
       Dlg.start(o.lines || [[GAME.hero.name, 'Clac. Se abre.']], () => { Events.trigger('lock:' + o.id); Phone.trigger && Phone.trigger('lock:' + o.id); }); });
     if (o.before && !o._seen) { o._seen = true; Dlg.start(o.before, openIt); } else openIt();
@@ -2217,19 +2298,27 @@ const PARTNER = () => (GAME.partners || []).find(p => p.id === state.partner);
 function fmtP(t) { const p = PARTNER(); return String(t).replace(/\{p\}/g, p ? p.name : 'nadie').replace(/\{pp\}/g, p ? p.pet : 'tú'); }
 const Help = {
   n: 0, idle: 0, offered: false,
+  point(o) { if (!o || !level) return; level.helpFocus = o; level.helpT = 25; const c = objCenter(o), dx = c.x - P.pos.x, dz = c.z - P.pos.z; let d = Math.atan2(-dx, -dz) - camS.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
+    const side = Math.abs(d) < 0.5 ? 'delante de ti' : Math.abs(d) > 2.5 ? 'a tu espalda' : d > 0 ? 'a tu izquierda' : 'a tu derecha'; this.where = `Te lo marco con una luz: está ${side}, a ${Math.max(0.5, Math.hypot(dx, dz)).toFixed(1)} m.`; },
   reset() { this.n = 0; this.ln = 0; this.idle = 0; this.offered = false; },
   next() { // pista fácil según el punto exacto en el que estás
     const C = level.C, it = level.items.find(i => !i.gone && !i.fake && !i.hidden && !i.sealed) || level.items.find(i => !i.gone && !i.fake && !i.sealed);
     if (!it) { const sl = level.items.find(i => !i.gone && !i.fake && i.sealed); const L = sl && level.objs.find(x => x.id === sl.sealedBy && !x.opened);
-      if (L) { this.ln = (this.ln || 0) + 1; return this.ln < 2 ? (L.hint || `Lo que te falta está dentro de «${L.name}». La combinación está escrita en algún papel de esta sala.`) : `«${L.name}» se abre con ${L.code}.`; } }
+      if (L) { this.point(L); this.ln = (this.ln || 0) + 1; return this.ln < 2 ? (L.hint || `Lo que te falta está dentro de «${L.name}». La combinación está escrita en algún papel de esta sala.`) : `«${L.name}» se abre con ${L.code}.`; } }
+    if (it) this.point(it);
     if (it) return it.hint || `Te falta «${it.name}». ${it.hidden ? 'Solo aparece con la luz apagada: apágala (busca el interruptor o el flexo) y mira el suelo y las paredes.' : 'Está en esta sala: busca el brillo y acércate con WASD.'}`;
     if (C.pc && !level.pcUnlocked && C.pc.required !== false) { this.n++; return this.n < 2 ? (C.pc.hint || 'Hay algo que pide una contraseña. La pista está escrita en esta sala.') : `Escribe «${C.pc.password}» en ${C.pc.title || 'el ordenador'}.`; }
-    if (!level.solved && C.code) { this.n++; return this.n < 2 ? (C.codeHelp || C.codeFamily || 'La puerta tiene un código. Lee los papeles y escucha los sonidos de la sala.').replace(/^[^:]*: /, '') : `El código de la puerta es ${C.code}.`; }
+    if (!level.solved && C.code) { this.n++; // pista en tres pasos: idea general → dónde mirar → la clave
+      if (this.n < 2) return (C.codeHelp || C.codeFamily || 'La puerta tiene un código. Lee los papeles y escucha los sonidos de la sala.').replace(/^[^:]*: /, '');
+      const cl = level.objs.find(x => x.kind === 'inspect' && (x.read || x.sound) && !level.inspected.has(x.id || x.name) && pickable(x));
+      if (this.n === 2 && cl) { this.point(cl); return `Mira «${cl.name}»: ahí hay parte de la clave. Luego, en Pausa (Esc), tienes todas tus pistas anotadas.`; }
+      this.point(level.objs.find(x => x.kind === 'door')); return `El código de la puerta es ${C.code}.`; }
+    this.point(level.objs.find(x => x.kind === 'door'));
     return 'Ya lo tienes todo. Ve a la puerta (' + (C.exitName || 'salida') + ').';
   },
   ask() {
     if (Dlg.active || PC.open || Read.open || state.screen !== 'game') return; const p = PARTNER(); this.idle = 0; this.offered = false;
-    const t = this.next(); unlock('help');
+    this.where = ''; const t = this.next(); unlock('help'); if (this.where) setTimeout(() => toast(this.where, 6), 400);
     Dlg.start([[p ? p.name + ' (móvil)' : 'Tú', (p ? pick(p.helpIntro || ['Mira:']) + ' ' : '(Piensas en voz alta) ') + fmtP(t)]]);
   },
   tick(dt) {
@@ -2598,6 +2687,13 @@ $('#phClose').onclick = () => Phone.toggle(false);
 $('#btnBreath').addEventListener('pointerdown', e => { e.stopPropagation(); breathHeld = true; });
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => $('#btnBreath').addEventListener(ev, () => breathHeld = false));
 
+// ---------- Ratón: volver a capturarlo al cerrar ventanas ----------
+function relock() {
+  if (IS_TOUCH || state.screen !== 'game' || state.paused || document.pointerLockElement === gl) return;
+  if (Dlg.active || Keypad.open || PC.open || Read.open || Phone.open || Call.ringing) return;
+  try { const r = gl.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+}
+[Read, Keypad, PC].forEach(X => { const c = X.close.bind(X); X.close = function () { const r = c.apply(null, arguments); setTimeout(relock, 30); return r; }; });
 // ---------- Bucle ----------
 let T = 0;
 function loop() {
