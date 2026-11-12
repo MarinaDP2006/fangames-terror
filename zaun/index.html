@@ -787,6 +787,269 @@ GAME.voices = [
 ];
 CHAPTERS.forEach(c => { c.events = (c.events || []).concat([{ on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }, { on: 'item:2', do: 'flicker', dur: 1.2 }]); });
 </script>
+<script id="patch-v3">// ================= PARCHE v3 · Zaun: terror psicológico, más parejas, capítulos largos =================
+(function () {
+  const F = (at, id, name, title, text, x = {}) => Object.assign({ type: 'folio', at, kind: 'inspect', id, name, read: { title, text }, text: [title ? '#' + title : '', ...text.slice(0, 7)] }, x);
+  const WF = (wall, at, id, name, title, text, x = {}) => Object.assign({ type: 'folio', wall, at, upright: true, w: 0.42, h: 0.56, kind: 'inspect', id, name, read: { title, text }, text: ['#' + title, ...text.slice(0, 5)] }, x);
+  const byId = id => CHAPTERS.find(c => c.id === id);
+  const calm = evs => (evs || []).filter(e => !['figure', 'stinger', 'slam'].includes(e.do));
+
+  // ---------- textos generales ----------
+  GAME.saveKey = 'shimmer-rooms-v3';
+  GAME.version = 'v2026.11.12 · fan game';
+  GAME.advisory = 'Ponte auriculares. Juega a solas. Juega a oscuras.<br>Terror psicológico: no hay sustos de golpe. Hay cosas peores. Contiene drogas, sangre y luces que parpadean.';
+  GAME.menuDesc.start = 'Jinx te ha secuestrado para atraer a quien te quiere. Despiertas con Shimmer en la sangre, en el despacho de Silco. Siete salas. Dos salidas. Una te mata. Y una pregunta: ¿cuánto tiempo llevas aquí de verdad?';
+  GAME.partnerText = 'Eres una persona corriente de Zaun. Nada especial: un trabajo en las fundiciones, un cuarto con goteras… y alguien que te quiere. Jinx lo sabe. Por eso te ha elegido a ti. Tu pareja te guiará por el comunicador; pulsa H o «?» cuando te atasques. Escúchala bien: no todo lo que suena con su voz es suyo.';
+  GAME.presence = [
+    'Hueles a colonia de Silco. Lleva muerto meses.',
+    'Por el comunicador, alguien respira. No dice nada. Lleva así un buen rato.',
+    'Te das cuenta de que no recuerdas cómo has llegado a esta sala. Ni de la anterior.',
+    'Alguien ha escrito tu nombre en el vaho del cristal. Por fuera.',
+    'Tus manos huelen a desinfectante. No has tocado ninguno.',
+    'Cuentas tus dedos. Cinco. Vuelves a contarlos, por si acaso.',
+    'Una voz de mujer, muy lejos, lee un número de paciente. Luego tu nombre.'
+  ];
+  GAME.partners.push(
+    { id: 'silco', name: 'Silco', rel: 'barón químico de Zaun', pet: 'querida', color: '#b06aff', desc: 'Murió hace meses, en brazos de Jinx. Aun así, el comunicador suena con su voz. Tranquila, precisa, imposible.', helpIntro: ['Escúchame, querida:', 'Despacio. Mira:', 'Te lo diré una vez:'], offer: ['Llevas un rato quieta. Los quietos se ahogan. ¿Te ayudo?', 'Querida, ¿quieres que piense por ti?'] },
+    { id: 'mel', name: 'Mel', rel: 'consejera de Piltover', pet: 'mi vida', color: '#f2c94c', desc: 'Elegante, fría y siempre a salvo. Te habla desde su balcón dorado, en Piltover, con una calma que no sabes si te consuela o te asusta.', helpIntro: ['Mi vida, observa:', 'Es sencillo, si miras bien:', 'Permíteme:'], offer: ['Te noto dudar. ¿Me dejas ayudarte?', '¿Quieres que te diga lo que yo vería?'] },
+    { id: 'caitlyn', name: 'Caitlyn', rel: 'sheriff de Piltover', pet: 'amor', color: '#5aa8ff', desc: 'Lista, terca y con el rifle siempre al hombro. Te guía desde la comisaría de Piltover mientras moviliza a sus agentes para bajar a buscarte.', helpIntro: ['Amor, como en una investigación:', 'Fíjate en las pruebas:', 'Mira:'], offer: ['Llevas un rato parada. ¿Repasamos las pruebas juntas?', 'Amor, ¿te echo una mano?'] }
+  );
+  GAME.achievements.push(
+    { id: 'lock_any', icon: '🗝️', name: 'Bajo llave', hint: 'Abre algo que alguien cerró para ti.' },
+    { id: 'cap_stillwater', icon: '⛓️', name: 'Stillwater', hint: 'Sal de la celda de Vi.' },
+    { id: 'cap_clinica', icon: '🧪', name: 'Paciente 17', hint: 'Sal de la clínica de Singed.' },
+    { id: 'code_stillwater', icon: '🔢', name: 'Día 1847', hint: 'Abre la celda.' },
+    { id: 'code_clinica', icon: '🫁', name: 'Respira', hint: 'Abre la puerta de la clínica.' },
+    { id: 'expediente', icon: '📁', name: 'Te vigilaban', hint: 'Encuentra el expediente con tu nombre.' },
+    { id: 'paciente', icon: '🏷️', name: 'Pulsera', hint: 'Descubre qué número tienes.' },
+    { id: 'gaslight', icon: '📻', name: 'Yo no te he dicho eso', hint: 'Oye a tu pareja decir algo que nunca dijo.' }
+  );
+
+  // ---------- I · El despacho ----------
+  let C = byId('despacho');
+  C.room.objects.push(
+    WF('n', [-1.6, 1.5], 'agenda', 'Agenda de Silco', 'Agenda · la desconocida', ['Días que la vi pasar por la fundición,', 'siempre a la misma hora:', '1 · 4 · 9', '', 'El archivador guarda lo que sé de ella.', 'Tres cifras. Por orden.'], { ach: 'reader' }),
+    { type: 'model', m: 'GothicCabinet_01', at: [2.1, 0, -1.8], s: 0.75, kind: 'lock', id: 'archivador', name: 'Archivador cerrado (tres cifras)', focusY: 1.0, code: '149', codeTitle: 'Archivador de Silco · tres cifras', hint: 'El archivador se abre con los tres días de la agenda colgada en la pared, en orden.', before: [['Tú', 'Un archivador con una cerradura de ruedas. En la etiqueta, con la letra de Silco: «Ella».'], ['Tú', '¿Quién es «ella»?']], lines: [['Tú', 'Clac. Dentro hay una sola carpeta. Gruesa. Con mi nombre.']] },
+    { type: 'item', at: [2.1, 0.62, -1.25], shape: 'paper', color: 0xd8d0c0, kind: 'item', sealed: true, sealedBy: 'archivador', ach: 'expediente', name: 'Expediente con tu nombre', lines: [['Tú', 'Fotos mías. Saliendo de la fundición. Comprando pan. Dormida, con la ventana abierta.'], ['Tú', 'Cada foto tiene una fecha. La primera es de hace tres meses. La última es de esta noche.'], ['Tú', 'Está hecha desde aquí dentro. Desde este despacho. Desde donde estoy de pie ahora mismo.']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 'look:notas', do: 'rewrite', id: 'notas', delay: 18, read: { title: 'Notas · J. y S.', text: ['Jinx. Inestable. Brillante. Mía.', 'Ekko, Vi, el chico de Piltover: todos tienen a alguien. Ese alguien es el punto débil.', 'La desconocida no recuerda cuánto tiempo lleva aquí.', 'Mejor así.', '', 'Nunca la traje al bar. Nunca le enseñé a disparar.'] } },
+    { on: 'look:notas', do: 'presence', delay: 20, text: 'Desde aquí, las notas de Silco parecen tener una línea más. Antes no estaba. ¿O sí?' },
+    { on: 't:45', do: 'presence', text: 'La puerta del despacho tiene un arañazo a la altura de tu mano. Como si alguien hubiera intentado salir muchas veces.' },
+    { on: 't:75', do: 'say', lines: [['{p} (comunicador)', 'Siéntate en la silla del escritorio. Descansa un poco. Yo te aviso cuando llegue.']] },
+    { on: 't:100', do: 'say', lines: [['{p} (comunicador)', '¿Me oyes? Llevo diez minutos sin señal. ¿Qué silla? Yo no te he dicho nada de ninguna silla.'], ['Tú', '…']] },
+    { on: 't:100', do: 'drain', dmg: 4 },
+    { on: 'lock:archivador', do: 'heartbeat', n: 6, text: 'Tu corazón va demasiado rápido. Respira. Ya está. Ya está.' }
+  ]);
+
+  // ---------- II · La Última Gota ----------
+  C = byId('gota');
+  C.room.objects.push(
+    F([0.55, 0.42, 0.45], 'cuenta', 'Cuenta de la casa', 'Lo que me deben', ['Zumos que me deben los críos:', 'Vi ...... 2', 'Powder .. 5', 'Mylo .... 8', '', 'La caja se abre con lo que me deben,', 'en ese orden. — V.'], { ach: 'reader' }),
+    { type: 'model', m: 'metal_toolbox', at: [1.6, 1.04, -2.2], s: 0.9, rot: 0, solid: false, kind: 'lock', id: 'cajaV', name: 'Caja de caudales de Vander', focusY: 1.15, code: '258', codeTitle: 'Caja de Vander · tres cifras', hint: 'Lo que le deben los críos a Vander, en la cuenta de la mesa: 2, 5, 8.', lines: [['Tú', 'Dentro no hay dinero. Hay una foto doblada en cuatro.']] },
+    { type: 'item', at: [1.6, 1.12, -1.95], shape: 'paper', color: 0xe8dcc0, kind: 'item', sealed: true, sealedBy: 'cajaV', name: 'Foto de la familia de Vander', lines: [['Tú', 'Vander, Vi, Powder, Mylo y Claggor, apretados en la barra, riéndose.'], ['Tú', 'Hay una sexta persona, recortada con tijeras. En el hueco alguien ha pegado una foto mía. De carné. Reciente.'], ['Jinx', 'Siempre estuviste, cielito. Lo que pasa es que no te acuerdas. Nadie se acuerda de los que estaban.']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:30', do: 'presence', text: 'En la barra hay seis vasos. Cinco con zumo seco. El sexto está lleno, y aún está frío.' },
+    { on: 'item:2', do: 'say', lines: [['Vi (desde la trastienda)', 'Pequeña, ¿eres tú? Ven. Estoy aquí detrás. No traigas a nadie.'], ['Tú', 'Vi está en Piltover. Lo dijo {p} hace un rato. ¿Verdad?']] },
+    { on: 't:80', do: 'presence', text: 'Te sabes de memoria dónde cruje cada tabla del suelo. Nunca habías estado aquí.' },
+    { on: 'lock:cajaV', do: 'heartbeat', n: 5 }
+  ]);
+
+  // ---------- II · Piltover ----------
+  C = byId('piltover');
+  C.room.objects.push(
+    F([-0.6, 1.045, -1.75], 'inventario', 'Hoja de inventario', 'Inventario · vitrina', ['Cristales que estallaron, por orden:', 'el séptimo, el segundo, el cuarto.', '', 'La vitrina usa ese orden.', '(No dejes que el paciente lo lea.)'], { ach: 'reader' }),
+    { type: 'model', m: 'GothicCabinet_01', at: [-2.5, 0, -1.5], rot: Math.PI / 2, s: 0.8, tint: 0xc8a888, kind: 'lock', id: 'vitrina', name: 'Vitrina cerrada de la Academia', focusY: 1.1, code: '724', codeTitle: 'Vitrina · tres cifras', hint: 'El orden de los cristales que estallaron, en la hoja de inventario: 7, 2, 4.', lines: [['Tú', 'No hay cristales dentro. Solo un informe médico, con el sello de la Academia.']] },
+    { type: 'item', at: [-1.95, 0.9, -1.5], shape: 'paper', color: 0xf2f2f2, kind: 'item', sealed: true, sealedBy: 'vitrina', name: 'Informe médico', lines: [['Tú', '«Paciente: anónima, de Zaun. Exposición al Shimmer: prolongada.»'], ['Tú', '«Cree que la han secuestrado. Cree que alguien que la quiere viene a buscarla. Se lo permitimos: la calma.»'], ['Tú', '«Ingreso: hace tres semanas.» Hace tres semanas yo estaba en mi cuarto. Creo.']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:35', do: 'presence', text: 'Hay una bata colgada en el perchero. Tiene tu talla. Huele a ti.' },
+    { on: 'look:radio', do: 'say', delay: 12, lines: [['{p} (comunicador)', 'No escuches la radio. Esa frecuencia es de la clínica. Te están hablando a ti.'], ['Tú', '¿Qué clínica?'], ['{p} (comunicador)', '…¿Qué? Yo no he dicho ninguna clínica.']] },
+    { on: 'lock:vitrina', do: 'heartbeat', n: 6, text: 'Tres semanas. No puede ser. Tres semanas.' }
+  ]);
+
+  // ---------- III · El taller ----------
+  C = byId('taller');
+  C.room.objects.push(
+    WF('w', [0, 1.55, -0.6], 'lista', 'Lista de Jinx', 'cosas que hacen BUM ♥', ['3 cohetes', '1 lanzagranadas (Fishbones no cuenta)', '6 caramelos para Isha', '', 'el cofre: la lista, en orden', '(los caramelos también cuentan)'], { paper: '#f6f0ff', ink: '#2a0a3a', font: '"Permanent Marker", cursive', ach: 'reader' }),
+    { type: 'model', m: 'treasure_chest', at: [2.2, 0, 1.8], rot: -Math.PI / 2 - 0.3, s: 0.8, kind: 'lock', id: 'cofreJ', name: 'Cofre pintado de Jinx', focusY: 0.6, code: '316', codeTitle: 'Cofre de Jinx · tres cifras', hint: 'La lista de Jinx de la pared: 3 cohetes, 1 lanzagranadas, 6 caramelos.', lines: [['Jinx', '¡Sorpresa! Te lo guardé. Lo llevabas puesto cuando te traje.']] },
+    { type: 'item', at: [1.85, 0.55, 1.7], shape: 'ring', color: 0xf2f2f2, kind: 'item', sealed: true, sealedBy: 'cofreJ', ach: 'paciente', name: 'Pulsera de plástico', lines: [['Tú', 'Una pulsera de hospital, de las que no se quitan. Con mi nombre, mal escrito.'], ['Tú', 'Debajo: «Clínica de Singed · Paciente 17».'], ['Jinx', 'Diecisiete. Como los años que tenía yo cuando dejé de contar. ¿A que es bonito?']] }
+  );
+  C.events = calm(C.events).concat([
+    { on: 't:40', do: 'presence', text: 'Sobre la mesa hay un dibujo de esta habitación. Desde arriba. Con una X donde estás tú.' },
+    { on: 'dark', do: 'presence', delay: 3, text: 'A oscuras, el taller suena distinto. Como una sala grande. Como un pasillo de hospital.' },
+    { on: 't:85', do: 'say', lines: [['{p} (comunicador)', 'Bien. Ya casi. Ahora tómate lo que hay en la mesa. Es para el dolor.'], ['Tú', 'En la mesa solo hay pólvora y cables.']] },
+    { on: 't:85', do: 'presence', delay: 6, text: 'Por un segundo, el comunicador suena con otra voz. Una voz de enfermera. Luego vuelve {p}.' },
+    { on: 'lock:cofreJ', do: 'heartbeat', n: 6 }
+  ]);
+
+  // ---------- IV (nuevo) · Stillwater ----------
+  const STILL = {
+    id: 'stillwater', num: 'IV', time: '03:40', title: 'La celda de Vi', place: 'Stillwater · La cárcel bajo el agua', loading: 'Bajando a Stillwater…',
+    epigraph: '«Vi contó los días en la pared hasta que dejó de servir para algo. Luego siguió contando. Contar era lo único que era suyo.»',
+    room: Object.assign({}, ZAUN_ROOM, { w: 5.2, d: 4.8, h: 3.0, wallTex: { id: 'concrete_wall_004', s: 1.8, tint: 0x6a7a74 }, floorTex: { id: 'concrete_floor_worn_001', s: 2 }, ceilTex: { id: 'rusty_metal_02', s: 1.6, tint: 0x4a4a4a }, fog: 0x050a0a, fogDensity: 0.045, sky: 0x4a6a6a, ambient: 0.36, motes: 0x9ad8c8, shadowFrom: 'main', objects: [
+      { type: 'model', m: 'caged_hanging_light', at: [0, 3.0, 0], id: 'main', hang: true, s: 0.7, light: { c: 0xbfe8d8, i: 1.15, y: -0.55, d: 9 } },
+      { type: 'model', m: 'old_bed_frame', at: [-1.7, 0, -1.2], rot: Math.PI / 2, s: 0.85 },
+      { type: 'model', m: 'metal_stool_01', at: [0.9, 0, -1.6], solid: false },
+      { type: 'model', m: 'metal_office_desk', at: [1.4, 0, -1.95], s: 0.8, tint: 0x4a504c },
+      { type: 'model', m: 'desk_lamp_arm_01', at: [1.85, 0.62, -2.05], kind: 'light', name: 'Apagar / encender el flexo del guardia', light: { c: 0xd0f0e0, i: 0.7, y: 0.62, z: 0.22, d: 4, bulb: false }, focusY: 0.85 },
+      { type: 'model', m: 'steel_frame_shelves_02', at: [2.35, 0, 0.6], rot: -Math.PI / 2, s: 0.9 },
+      { type: 'chains', at: [-2.3, 3.0, 0.9], len: 1.8 },
+      { type: 'graffiti', wall: 'w', at: [0, 1.6, 0.6], w: 1.8, text: ['IIII IIII IIII', 'DÍA 1846 · VI'], color: '#d8e0d8', size: 70, kind: 'inspect', id: 'marcas', name: 'Marcas en la pared', lines: [['Tú', 'Miles de rayitas, de cuatro en cuatro, tachadas con la quinta. Arriba, con letra torcida: «DÍA 1846 · VI».'], ['Eco de Vi', 'Si dejo de contar, me olvido de que hay un fuera. Si me olvido de que hay un fuera, me quedo.']] },
+      { type: 'graffiti', wall: 'w', at: [0, 1.0, -0.6], w: 1.4, hidden: true, text: ['DÍA 1847'], color: '#ff3c9e', size: 110 },
+      { type: 'graffiti', wall: 'e', at: [0, 1.7, -0.4], w: 1.8, hidden: true, text: ['NO ME ACUERDO', 'DE ENTRAR'], color: '#25e6ff', size: 80 },
+      F([1.15, 0.62, -1.9], 'registro', 'Registro del guardia', 'Celda 7 · registro', ['La celda se abre con el número del día.', 'El de HOY, no el de ayer.', 'La reclusa nueva sigue la cuenta de Vi', 'como si fuera suya. Con su letra.', '', 'No la corrijo. Para qué.'], { ach: 'reader' }),
+      WF('e', [0, 1.5, 1.2], 'turnos', 'Turnos', 'Turnos · taquilla', ['Taquilla del guardia:', 'mi número de placa, al revés.', '', 'Placa: 381'], { paper: '#e8e4d8' }),
+      { type: 'model', m: 'metal_tool_chest', at: [2.3, 0, -0.9], rot: -Math.PI / 2, s: 0.75, kind: 'lock', id: 'taquilla', name: 'Taquilla del guardia (tres cifras)', focusY: 0.8, code: '183', codeTitle: 'Taquilla · tres cifras', hint: 'El número de placa del guardia (381), al revés.', lines: [['Tú', 'Ropa doblada. Un uniforme. Y una ficha de ingreso con mi foto.']] },
+      { type: 'item', at: [2.0, 0.55, -0.9], shape: 'paper', color: 0xe8e4d8, kind: 'item', sealed: true, sealedBy: 'taquilla', name: 'Ficha de ingreso', lines: [['Tú', '«Ingreso: hace tres semanas. Motivo: posesión de Shimmer.»'], ['Tú', '«Visitas: {p}. Cada día. Nunca ha pasado de la puerta.»'], ['Tú', 'Cada día. ¿Por qué no me acuerdo de ninguna?']] },
+      { type: 'item', at: [-1.85, 0.5, -1.0], shape: 'paper', color: 0xe8dcc0, kind: 'item', name: 'Carta de Vi a Powder', lines: [['Tú', '«Powder: si sales antes que yo, no me esperes.» Tachado. «Espérame.» Tachado. «Lo siento.»'], ['Tú', 'Nunca la envió. Debajo de la carta hay otra, en blanco, con mi nombre en el sobre.']] },
+      { type: 'item', at: [0.9, 0.48, -1.6], shape: 'glove', color: 0x6a3a2a, kind: 'item', name: 'Vendas de boxeo', lines: [['Eco de Vi', 'Golpeaba la pared hasta que me sangraban los nudillos. Así sabía que la pared seguía ahí. Y yo también.'], ['Tú', 'Las vendas están húmedas. Recién usadas. Miro mis nudillos. Están en carne viva.']] },
+      { type: 'item', at: [-0.4, 0.1, 1.4], shape: 'spring', color: 0x9a9aaa, kind: 'item', name: 'Cuchara afilada', lines: [['Tú', 'Una cuchara limada contra el suelo hasta hacerla punta. Alguien tuvo mucho tiempo.'], ['Jinx', 'Vi la hizo en el día 600. No la usó nunca. Era para sentirse menos sola. Igual que tú con {p}.']] },
+      { type: 'item', at: [-2.0, 0.03, 1.6], shape: 'paper', color: 0x160a14, kind: 'item', hidden: true, name: 'Dibujo bajo la cama', lines: [['Tú', 'Con la luz apagada brilla un dibujo en el suelo: dos niñas de la mano. Una tiene la cara tachada.'], ['Tú', 'La otra soy yo. No: la otra tiene mi cara.']] },
+      { type: 'door', wall: 's', at: [1.3, 0], code: true, kind: 'door', name: 'Puerta de la celda', focusY: 1.2, tex: 'rusty_metal_04' }
+    ] }),
+    start: { at: [0, 0.2], yaw: 0 },
+    objective: 'Encuentra lo que Vi dejó en su celda',
+    code: '1847', codeTitle: 'Celda 7 · cuatro cifras', codeObjective: 'Abre la celda con el número del día de hoy',
+    codeFamily: 'Jinx: «La última raya es 1846. Pero eso era ayer, cielito. Hoy es 1847. Hoy cuentas tú».',
+    intro: [['Tú', 'Una celda. Huele a humedad y a hierro. El agua gotea desde el techo, siempre en el mismo sitio.'], ['Tú', 'Esto es Stillwater. Aquí tuvieron a Vi años. ¿Qué hago yo aquí?'], ['Jinx', 'Lo mismo que ella, cielito: esperar a que alguien venga. Spoiler: tardan.']],
+    allFound: [['Jinx', 'Ya está. Ahora la puerta. Se abre con el número del día. El de hoy. ¿Sabes en qué día vives?']],
+    locked: 'Aún no. Vi dejó más cosas aquí.',
+    events: [
+      { on: 't:6', do: 'say', lines: [['{p} (muy lejos)', '… te veo … estoy al otro lado del cristal … ¿por qué no me miras? …']] },
+      { on: 't:25', do: 'presence', text: 'El goteo del techo lleva el ritmo de tu corazón. Si tú te aceleras, él también.' },
+      { on: 'look:marcas', do: 'presence', delay: 8, text: 'Te miras los dedos. Tienes polvo de yeso bajo las uñas. Como si hubieras rayado una pared.' },
+      { on: 'dark', do: 'presence', delay: 2, text: 'A oscuras ves tu letra en la pared. No recuerdas haberla escrito. Pero es tu letra.' },
+      { on: 't:70', do: 'say', lines: [['{p} (comunicador)', 'No abras la puerta. Fuera no hay nada. Quédate. Aquí estás a salvo.'], ['Tú', 'Eso no lo diría {p}. ¿Verdad?']] },
+      { on: 't:72', do: 'drain', dmg: 5 },
+      { on: 'item:1', do: 'heartbeat', n: 4 },
+      { on: 'lock:taquilla', do: 'presence', delay: 3, text: 'Cada día. {p} vino cada día. Y tú cada día lo olvidaste.' },
+      { on: 'found', do: 'flicker', dur: 2 }
+    ],
+    exitName: 'Puerta de la celda'
+  };
+
+  // ---------- V (nuevo) · La clínica de Singed ----------
+  const CLIN = {
+    id: 'clinica', num: 'V', time: '04:10', title: 'La clínica de Singed', place: 'Zaun · Bajo las fosas', loading: 'Cargando la clínica…',
+    epigraph: '«Singed nunca curó a nadie. Pero era muy bueno haciendo que la gente creyera que se estaba curando.»',
+    room: Object.assign({}, ZAUN_ROOM, { w: 6.0, d: 5.2, h: 3.2, wallTex: { id: 'plastered_wall_02', s: 2, tint: 0x9ab0a8 }, floorTex: { id: 'metal_plate_02', s: 1.5, tint: 0x6a7a74 }, ceilTex: { id: 'concrete_wall_004', s: 2, tint: 0x555555 }, fog: 0x081410, fogDensity: 0.045, sky: 0x6a9a8a, ambient: 0.34, motes: 0xc8ffe6, shadowFrom: 'main', objects: [
+      { type: 'model', m: 'hanging_industrial_lamp', at: [0, 3.2, -0.4], id: 'main', hang: true, s: 0.75, light: { c: 0xe0fff0, i: 1.15, y: -0.98, d: 9 } },
+      { type: 'model', m: 'old_bed_frame', at: [-1.6, 0, 0.9], rot: 0, s: 0.9, tint: 0xd8d8d0 },
+      { type: 'model', m: 'WoodenTable_03', at: [0.2, 0, -2.0], s: [1.6, 1.0, 1.0], tint: 0x8a8a84 },
+      { type: 'model', m: 'chemistry_set', at: [-0.4, 0.97, -2.05], s: 0.7, solid: false },
+      { type: 'model', m: 'vintage_microscope', at: [0.5, 0.97, -2.0], s: 1.2, solid: false },
+      { type: 'model', m: 'desk_lamp_arm_01', at: [1.0, 0.97, -2.1], kind: 'light', name: 'Apagar / encender el flexo', light: { c: 0xe0fff0, i: 0.8, y: 0.62, z: 0.22, d: 4, bulb: false }, focusY: 1.2 },
+      { type: 'model', m: 'tool_cart', at: [-0.5, 0, 0.9], s: 0.85 },
+      { type: 'model', m: 'steel_frame_shelves_02', at: [2.65, 0, -1.0], rot: -Math.PI / 2 },
+      { type: 'model', m: 'metal_stool_01', at: [0.2, 0, -1.2], solid: false },
+      { type: 'model', m: 'vintage_radio_transceiver', at: [-2.6, 0.97, -1.2], rot: Math.PI / 2, s: 0.9, solid: false, kind: 'inspect', id: 'respirador', name: 'Máquina que respira', sound: { kind: 'clock', groups: [2, 0, 6, 1], gap: 0.38, pause: 1.2 }, lines: [['Tú', '(Una máquina vieja con un fuelle. Sube, baja. Alguien la dejó conectada a nada.)'], ['', '[ tic tic · chssss… · tic tic tic tic tic tic · tic ]'], ['Tú', 'Respira por alguien que ya no está en la cama. O que todavía no ha llegado.']], dist: 0.7 },
+      { type: 'model', m: 'WoodenTable_01', at: [-2.6, 0, -1.2], s: [0.6, 1.0, 0.8], rot: Math.PI / 2 },
+      F([-0.1, 0.975, -1.75], 'salida', 'Nota del celador', 'Salida', ['La puerta se abre con lo que dice la máquina.', 'Cuenta sus golpes. Siseo largo = cero.', '', 'No despiertes a la 17.', 'Cuando despierta, pregunta por {p}.'], { ach: 'reader' }),
+      WF('n', [-1.6, 1.6], 'etiquetas', 'Armario de muestras', 'Muestras', ['El armario se abre', 'con el número de la paciente', 'que más ha durado.', '', 'Pulsera. Muñeca izquierda.'], { paper: '#e8f0ec' }),
+      { type: 'model', m: 'GothicCabinet_01', at: [2.5, 0, 1.2], rot: -Math.PI / 2, s: 0.8, tint: 0xb8c8c0, kind: 'lock', id: 'muestras', name: 'Armario de muestras (dos cifras)', focusY: 1.1, code: '17', codeTitle: 'Armario de muestras · dos cifras', hint: 'El número de la pulsera que encontraste en el cofre de Jinx: paciente 17.', lines: [['Tú', 'Frascos con etiquetas. Todos con números. Y una carpeta con el número diecisiete.']] },
+      { type: 'item', at: [1.95, 0.95, 1.2], shape: 'book', color: 0xe8f0ec, kind: 'item', sealed: true, sealedBy: 'muestras', name: 'Expediente de la paciente 17', lines: [['Tú', '«Paciente 17. Fantasía recurrente: secuestro por J. Rescate por su pareja, {p}.»'], ['Tú', '«Cada noche recorre las mismas salas: el despacho, el bar, la celda. Cada noche elige una puerta.»'], ['Tú', '«Recomendación del doctor Singed: no despertarla. Todavía no ha elegido la buena.»']] },
+      { type: 'item', at: [-0.65, 1.02, -1.9], shape: 'jar', color: 0xff3c9e, kind: 'item', name: 'Ampolla de Shimmer', lines: [['Tú', 'Rosa, brillante, viva. La misma que me arde en la lengua desde que desperté.'], ['Eco de Singed', 'No es una droga, querida. Es una puerta. La pregunta es hacia dónde.']] },
+      { type: 'item', at: [-0.5, 0.95, 0.9], shape: 'paper', color: 0xd8c8b8, kind: 'item', name: 'Expediente «W.»', lines: [['Tú', '«Sujeto W. Antes: Vander.» Una foto de un hombre enorme con las manos vendadas.'], ['Tú', 'Debajo, notas: «Aún reconoce a las niñas. Corregir.» Corregir. Como si recordar fuera un error.']] },
+      { type: 'item', at: [-1.6, 0.6, 1.3], shape: 'cup', color: 0xf2f2f2, kind: 'item', name: 'Vaso de plástico con tu nombre', lines: [['Tú', 'Un vaso de los de pastillas. Con mi nombre en rotulador. Vacío.'], ['Tú', 'La cama está deshecha. La sábana conserva la forma de alguien. De mi tamaño.']] },
+      { type: 'item', at: [2.6, 1.3, -1.0], shape: 'paper', color: 0xe8dcc0, kind: 'item', name: 'Foto de Silco y Singed', lines: [['Tú', 'Silco y Singed, jóvenes, brindando en esta misma sala.'], ['Eco de Silco', 'Le pedí que hiciera a Zaun fuerte. Hizo a Zaun obediente. Nunca supe ver la diferencia.']] },
+      { type: 'graffiti', wall: 'w', at: [0, 2.2, 0.8], w: 1.8, hidden: true, text: ['DESPIERTA'], color: '#ff3c9e', size: 140 },
+      { type: 'door', wall: 's', at: [1.6, 0], code: true, kind: 'door', name: 'Puerta de la clínica', focusY: 1.2, tex: 'metal_plate', tint: 0x9ab0a8 }
+    ] }),
+    start: { at: [0, 0.6], yaw: 0 },
+    objective: 'Descubre quién es la paciente 17',
+    code: '2061', codeTitle: 'Puerta de la clínica · cuatro cifras', codeObjective: 'Abre la puerta (escucha la máquina que respira)',
+    codeFamily: 'Jinx: «Dos, chisss, seis, uno. 2061. La máquina siempre dice lo mismo, cielito. Como los adultos».',
+    intro: [['Tú', 'Luz blanca. Olor a desinfectante. Una cama deshecha. Esto no es una sala del Shimmer: esto lo conozco.'], ['Tú', 'He estado aquí. No sé cuándo. Mis manos lo saben antes que yo.'], ['Jinx', 'Shh. Aquí se habla bajito. Hay gente durmiendo. Bueno: hay una persona durmiendo.']],
+    allFound: [['Jinx', 'Ya lo sabes todo, ¿no? O casi. Escucha la máquina. Te dice cómo salir. O cómo despertar. Es lo mismo.']],
+    locked: 'Aún no. Hay respuestas en esta sala que no has querido mirar.',
+    events: [
+      { on: 't:5', do: 'say', lines: [['Voz de enfermera (por el altavoz)', 'Paciente diecisiete, ¿me oye? Si me oye, apriete la mano.'], ['Tú', '…'], ['Voz de enfermera (por el altavoz)', 'Nada. Igual que ayer.']] },
+      { on: 't:30', do: 'presence', text: 'La sábana de la cama sigue caliente. Alguien acaba de levantarse de ahí. O acaba de volver.' },
+      { on: 't:60', do: 'say', lines: [['{p} (comunicador)', 'Estoy aquí. Estoy a tu lado. Te estoy cogiendo la mano. ¿No lo notas?'], ['Tú', 'No. No noto nada.']] },
+      { on: 't:62', do: 'drain', dmg: 6 },
+      { on: 'look:respirador', do: 'heartbeat', n: 6, delay: 2 },
+      { on: 'lock:muestras', do: 'presence', delay: 3, dmg: 6, text: 'Todavía no ha elegido la buena. Todavía. ¿Cuántas noches llevas eligiendo?' },
+      { on: 'dark', do: 'presence', delay: 2, text: 'A oscuras oyes un pitido regular. Monitor cardíaco. Va al mismo ritmo que tu pecho.' },
+      { on: 'found', do: 'flicker', dur: 2.5 }
+    ],
+    exitName: 'Puerta de la clínica'
+  };
+  CHAPTERS.splice(4, 0, STILL, CLIN);
+
+  // ---------- VI · La merienda (final) ----------
+  C = byId('merienda');
+  C.num = 'VI'; C.time = '04:44';
+  C.room.objects.push(
+    WF('e', [0, 1.5, -1.4], 'menu', 'Menú de la merienda', 'Menú ♥', ['Té con Shimmer', 'Tarta de fresa (sin Vi)', 'Galletas (para Isha)', '', 'Invitada de honor: la 17', 'Postre: elegir puerta'], { paper: '#1a0a1a', ink: '#ff3c9e', glow: 0.5, font: '"Permanent Marker", cursive' })
+  );
+  C.intro = C.intro.concat([['Tú', 'Esta mesa. Esta sala. Esta conversación. Juraría que ya la he tenido. Muchas veces.']]);
+  C.events = calm(C.events).concat([
+    { on: 't:30', do: 'presence', text: 'Hay una taza con tu nombre. Tiene marcas de pintalabios. Del tuyo.' },
+    { on: 't:55', do: 'say', lines: [['Jinx', '¿Sabes cuántas veces has llegado hasta aquí, cielito? Yo sí. Llevo la cuenta en la pared, como Vi.']] },
+    { on: 'item:0', do: 'heartbeat', n: 4 }
+  ]);
+  ENDINGS.escalera.text = ENDINGS.escalera.text.concat(['Te abraza. Te dice que llevas tres semanas sin despertar. Que hoy, por fin, has apretado su mano.', 'Detrás de ti, en algún sitio, una máquina deja de contar.']);
+  ENDINGS.merienda.text = ENDINGS.merienda.text.concat(['En la clínica de Singed, una enfermera apunta en una ficha: «Paciente 17. Esta noche tampoco.»']);
+
+  // lore: los capítulos nuevos
+  GAME.lore.forEach(l => { if (l.t === 'La merienda') l.ch = 6; });
+  GAME.lore.push(
+    { ch: 4, t: 'Stillwater', text: 'La prisión de Piltover, construida bajo el agua. Allí encerraron a Vi durante años, sin juicio, después de la noche en que perdió a su familia. Contaba los días en la pared para no olvidar que existía un fuera. Caitlyn fue quien la sacó.' },
+    { ch: 5, t: 'Singed', text: 'Un químico brillante y sin escrúpulos. Desarrolló el Shimmer para Silco y experimentó con todo lo que caía en sus manos, incluido Vander, al que convirtió en la bestia Warwick. En este juego, su clínica es el lugar al que siempre vuelves.' }
+  );
+
+  // ---------- líneas de cada pareja ----------
+  const PL = PARTNER_LINES;
+  Object.assign(PL.despacho, {
+    silco: [['Silco (comunicador)', 'Mi despacho. Lo reconocería con los ojos cerrados: ahí murió una parte de mí y la otra aprendió a mandar. Busca mis cosas. La puerta se abre con mi hora: escucha la tubería.']],
+    mel: [['Mel (comunicador)', 'Mi vida, estás encima de un bar de Zaun, en el despacho de un hombre muerto. Respira. La gente que entra en pánico deja de ver. La clave está en la tubería y en el reloj.']],
+    caitlyn: [['Caitlyn (comunicador)', 'Amor, te tengo localizada en el despacho de Silco. Voy a bajar con mis agentes. Trátalo como una escena del crimen: recoge pruebas y abre la puerta. El código está en el reloj y en la tubería.']]
+  });
+  Object.assign(PL.gota, {
+    silco: [['Silco (comunicador)', 'El bar de Vander. Aquí me ahogó mi hermano y luego sirvió cerveza encima. Cada crío tenía su llamada en la tubería. Cuenta, querida.']],
+    mel: [['Mel (comunicador)', 'Un bar de Zaun. Nunca he pisado uno. Fíjate en la pizarra y en la tubería: aquí la gente se comunicaba con golpes.']],
+    caitlyn: [['Caitlyn (comunicador)', 'La Última Gota. Vi me trajo aquí una vez. La trastienda se abre con el orden en que llegaron los críos: la tubería te lo dice.']]
+  });
+  Object.assign(PL.piltover, {
+    silco: [['Silco (comunicador)', 'Piltover. Huele a perfume para tapar lo que pisan. La radio de Viktor emite en bucle. Cuéntala. Y no leas los informes. Hazme caso, por una vez.']],
+    mel: [['Mel (comunicador)', 'Estás en la Academia, a dos calles de mi casa. Cuenta los pitidos de la radio. Y no te fíes de nadie con bata, mi vida.']],
+    caitlyn: [['Caitlyn (comunicador)', 'Conozco ese laboratorio. La radio de Viktor emite tres grupos de pitidos. Cuéntalos. Mis agentes no pueden entrar sin orden. Yo sí.']]
+  });
+  Object.assign(PL.taller, {
+    silco: [['Silco (comunicador)', 'Su taller. Aquí jugaba a ser mayor. El despertador es su contraseña: tic es una cifra, el siseo es cero. Lo aprendió de mí.']],
+    mel: [['Mel (comunicador)', 'Una niña construyó todo esto sola. Qué desperdicio. Escucha el despertador: siseo es cero, cada tic suma uno.']],
+    caitlyn: [['Caitlyn (comunicador)', 'La guarida de Jinx. Estuve atada en su mesa una vez. Escucha la bomba: chisss es cero, cada tic suma. No toques los cables rojos.']]
+  });
+  Object.assign(PL.merienda, {
+    silco: [['Silco (comunicador)', 'Querida. Yo me senté a esa mesa y no me levanté. No cometas mi error. Y no vayas hacia mi voz: ya no estoy en ninguna parte.']],
+    mel: [['Mel (comunicador)', 'Escúchame bien: hay dos salidas. La gente que se sienta a esa mesa no vuelve. Coge la escalera, aunque esté oscura.']],
+    caitlyn: [['Caitlyn (comunicador)', 'Estuve en esa merienda. Atada. No te sientes. La escalera de servicio, amor. Te espero arriba. Yo de verdad.']]
+  });
+  PL.stillwater = {
+    ekko: [['Ekko (comunicador)', 'Chispa, eso es Stillwater. Vi pasó años ahí dentro. La celda se abre con el número del día. Cuenta bien. Y no te creas todo lo que veas escrito.']],
+    vi: [['Vi (comunicador)', 'Mi celda. Conté mil ochocientos cuarenta y seis días. Si ves un día más en la pared… no lo escribí yo, pequeña. Ábrela con el de hoy.']],
+    jayce: [['Jayce (radio)', 'Stillwater… Piltover encierra ahí lo que no quiere ver. La puerta usa el día de la cuenta de Vi. El siguiente, cariño.']],
+    silco: [['Silco (comunicador)', 'Stillwater. Yo pagué para que la tuvieran ahí. Para que Powder fuera solo mía. La celda se abre con el día de hoy, querida. No con el de ayer.']],
+    mel: [['Mel (comunicador)', 'Firmé el presupuesto de esa prisión sin leerlo. Ahora lo leo contigo. El código es el día siguiente a la última marca de Vi.']],
+    caitlyn: [['Caitlyn (comunicador)', 'Yo saqué a Vi de esa celda. Conozco el registro: la puerta se abre con el número del día. El de hoy. Uno más que el último que escribió Vi.']]
+  };
+  PL.clinica = {
+    ekko: [['Ekko (comunicador)', 'Chispa… esto no es una sala del Shimmer. Esto es la clínica de Singed. Escucha la máquina que respira: siseo es cero. Y por favor, aprieta la mano si me oyes.']],
+    vi: [['Vi (comunicador)', 'Singed. El que le hizo eso a Vander. Sal de ahí: escucha la máquina, cuenta sus golpes. Y pequeña… estoy a tu lado. Aquí. De verdad.']],
+    jayce: [['Jayce (radio)', 'Cariño, la máquina emite un patrón: dos, siseo, seis, uno. Es la puerta. Y si oyes a una enfermera… contéstale. Por favor.']],
+    silco: [['Silco (comunicador)', 'Singed fue mi mejor socio y mi peor error. Aquí nadie se cura: se acostumbra. Cuenta lo que respira la máquina y sal. Y despierta, querida. Ya basta.']],
+    mel: [['Mel (comunicador)', 'Mi vida, conozco esta clínica: la financiaba un consejero. Escucha la máquina, siseo es cero. Y luego elige bien. Llevas muchas noches eligiendo mal.']],
+    caitlyn: [['Caitlyn (comunicador)', 'Amor, esto es una clínica. Hay una pulsera, un número, un expediente. Es tu caso. Cuenta los golpes de la máquina y sal. Yo estoy a tu lado, en la silla de visitas. Siempre.']]
+  };
+  CHAPTERS.forEach(c => { if (PL[c.id]) c.partner = PL[c.id]; });
+  // los capítulos nuevos también tienen voces extrañas y parpadeos
+  [STILL, CLIN].forEach(c => { c.events = c.events.concat([{ on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }]); });
+  // logro: tu pareja dice algo que nunca dijo
+  CHAPTERS.forEach(c => c.events.forEach(e => { if (e.do === 'say' && e.lines && e.lines.some(l => /yo no te he dicho|Yo no he dicho|Eso no lo diría/i.test(l[1] || ''))) e.ach = 'gaslight'; }));
+})();
+</script>
 <script>'use strict';
 // =====================================================================
 //  Motor de terror en primera persona (inspirado en el formato de halloween.dev)
@@ -1278,7 +1541,7 @@ function updateMarks() {
   const k = D().marks; if (!level || !level.marks) return;
   for (const o of level.marks) {
     const sp = o._mark; let want = k;
-    const done = o.gone || (o.kind === 'inspect' && level.inspected.has(o.id || o.name)) || (o.kind === 'pc' && level.pcUnlocked) || (o.kind === 'door' && level.found < level.total);
+    const done = o.gone || (o.kind === 'inspect' && level.inspected.has(o.id || o.name)) || (o.kind === 'pc' && level.pcUnlocked) || (o.kind === 'door' && level.found < level.total) || (o.kind === 'lock' && o.opened);
     if (done || (o.hidden && !level.dark) || !o._g.visible || (o.fake && !D().fakeGlow)) want = 0;
     if (o.kind === 'inspect' && !o.read && !o.sound && k < 1) want *= 0.5; // en Normal solo brillan fuerte las pistas que importan
     o._g.getWorldPosition(_mp); _mp.y = (o.focusY !== undefined ? o.focusY : _mp.y + 0.1) + 0.14;
@@ -1418,6 +1681,7 @@ async function buildLevel(ci, prog) {
     g.position.set(x, y, z); group.add(g); o._g = g; o.pos = new THREE.Vector3(x, y, z);
     if (res.solid && !o.wall) { const [sw, sd] = res.solid; const c = Math.abs(Math.cos(g.rotation.y)), s = Math.abs(Math.sin(g.rotation.y)); const hw = (sw * c + sd * s) / 2, hd = (sw * s + sd * c) / 2; level.solids.push({ x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd }); }
     if (o.hidden) g.visible = false;
+    if (o.sealed) g.visible = false;
     if (o.kind === 'inspect' && !o.read && o.text && (o.type === 'note' || o.type === 'frame')) o.read = { style: o.type === 'note' ? 'postit' : 'bill', text: o.text.map(t => t.replace(/^#/, '')) };
     if (o.kind === 'item') { o.idx = itemIdx++; level.items.push(o); }
     if (o.kind) { o.focusY = o.focusY ?? (y + (o.type === 'item' ? 0.1 : 0.1)); g.traverse(n => { if (n.isMesh) { n.userData.o = o; level.inter.push(n); } }); }
@@ -1586,7 +1850,11 @@ function updateAch(dt) {
 }
 
 // ---------- FX de alucinación ----------
-const FX = { pulse: 0, flash: 0, shake: 0, words: [], nextWord: 2, detect: 0, hurt: 0, fire: 0, noise: null };
+const FX = { pulse: 0, words: [], nextWord: 2, detect: 0, hurt: 0, fire: 0, noise: null };
+(function softFX() { let f = 0, k = 0;
+  Object.defineProperty(FX, 'flash', { get() { return f; }, set(v) { f = v > f ? Math.min(f + (v - f) * 0.12, 0.08) : v; }, configurable: true });
+  Object.defineProperty(FX, 'shake', { get() { return k; }, set(v) { k = v > k ? Math.min(k + (v - k) * 0.12, 0.05) : v; }, configurable: true });
+})();
 (function () { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const id = g.createImageData(128, 128); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 40; } g.putImageData(id, 0, 0); FX.noise = c; })();
 function drawFX(dt, t) {
   const cv = $('#fx'), g = cv.getContext('2d'), w = cv.width, h = cv.height;
@@ -1637,7 +1905,7 @@ let gameT = 0, interactTarget = null, toastT = 0;
 function toast(msg, sec = 3) { const el = $('#toast'); el.innerHTML = fmt(msg); el.classList.add('on'); toastT = sec; }
 function objective() {
   if (!level) return ''; const C = level.C;
-  if (level.found < level.total) return `${C.objective} · ${level.found}/${level.total}` + (level.items.some(i => i.hidden && !i.gone) && level.found >= level.total - 1 ? ' · (algo solo se ve a oscuras)' : '');
+  if (level.found < level.total) return `${C.objective} · ${level.found}/${level.total}` + (level.items.some(i => i.hidden && !i.gone) && level.found >= level.total - 1 ? ' · (algo solo se ve a oscuras)' : '') + (level.items.some(i => i.sealed && !i.gone) && !level.items.some(i => !i.gone && !i.fake && !i.sealed && !i.hidden) ? ' · (lo que falta está bajo llave)' : '');
   if (!level.pcUnlocked && C.pc && C.pc.required !== false) return C.pc.objective || GAME.pcObjective || 'Entra en el ordenador';
   if (!level.solved) return (C.codeObjective || 'Abre la puerta') + ' · tus pistas están en Pausa';
   return C.final ? (C.finalObjective || 'Termina esto') : (C.exitObjective || 'Sal de aquí');
@@ -1710,6 +1978,7 @@ const Voice = {
 };
 Voice.init();
 // ---------- Eventos de miedo ----------
+AudioFX.stinger = function () { this.heartbeat && this.heartbeat(0.6); };
 const Events = {
   trigger(key) { const C = level && level.C; if (!C || !C.events) return; C.events.forEach((ev, i) => { if (ev.on === key && !level.fired.has(i)) { level.fired.add(i); setTimeout(() => this.run(ev), (ev.delay || 0) * 1000); } }); },
   tick(dt) { const C = level.C; level.evT += dt; (C.events || []).forEach((ev, i) => { if (ev.on && ev.on.startsWith('t:') && !level.fired.has(i) && level.evT >= +ev.on.slice(2)) { level.fired.add(i); this.run(ev); } }); },
@@ -1727,12 +1996,17 @@ const Events = {
     if (d === 'flicker') { level.flick = ev.dur || 1.6; AudioFX.burst(120, 2, 0.4, 0.15); }
     else if (d === 'blackout') { setLights(false); AudioFX.thud(); setTimeout(() => { if (level && !level.dark) setLights(true); }, (ev.dur || 3) * 1000); }
     else if (d === 'knock') { AudioFX.knock(ev.n || 3); }
-    else if (d === 'slam') { AudioFX.slam(); FX.shake = 0.6; }
+    else if (d === 'slam') { AudioFX.creak ? AudioFX.creak() : AudioFX.knock(1); }
     else if (d === 'voice') { Voice.say(ev.v); }
     else if (d === 'whisper') { AudioFX.whisper(); FX.words.push({ text: ev.text || pick(GLOBAL_WHISPERS), x: rand(0.2, 0.8) * $('#fx').width, y: rand(0.2, 0.8) * $('#fx').height, life: 0, max: 2.5, size: 28, rot: rand(-0.2, 0.2), col: GAME.css['--acc'] || '#fff' }); }
-    else if (d === 'stinger') { AudioFX.stinger(); FX.flash = 0.25; FX.shake = 0.5; state.sanity -= ev.dmg || 8; }
+    else if (d === 'stinger') { this.run({ do: 'heartbeat', n: 5 }); state.sanity = Math.max(5, state.sanity - (ev.dmg || 6)); }
     else if (d === 'msg') { toast(ev.text, ev.dur || 3); }
-    else if (d === 'say') { if (!Dlg.active) Dlg.start(ev.lines); }
+    else if (d === 'say') { if (!Dlg.active) Dlg.start(ev.lines); else setTimeout(() => this.run(ev), 2500); }
+    else if (d === 'rewrite') { const o = level.objs.find(x => x.id === ev.id); if (o) { if (ev.read) o.read = Object.assign({}, o.read || {}, ev.read); if (ev.lines) o.lines = ev.lines; level.inspected.delete(o.id || o.name); o._reading = false; } AudioFX.whisper(); FX.pulse = Math.max(FX.pulse, 0.3); }
+    else if (d === 'presence') { AudioFX.creak && AudioFX.creak(); if (ev.text) toast(fmt(ev.text), ev.dur || 5); state.sanity = Math.max(5, state.sanity - (ev.dmg || 3)); FX.pulse = Math.max(FX.pulse, 0.25); }
+    else if (d === 'heartbeat') { let n = ev.n || 4; const beat = () => { if (n-- <= 0 || state.screen !== 'game') return; AudioFX.heartbeat && AudioFX.heartbeat(0.55); setTimeout(beat, 750); }; beat(); if (ev.text) toast(fmt(ev.text), 4); }
+    else if (d === 'drain') { state.sanity = Math.max(5, state.sanity - (ev.dmg || 5)); if (ev.text) toast(fmt(ev.text), 4); }
+    else if (d === 'figure' && !GAME.allowFigures) { this.run({ do: 'presence', text: pick(GAME.presence || ['Notas que alguien te mira. Cuando te giras, no hay nadie. Nunca hay nadie.']), dmg: ev.dmg || 3 }); }
     else if (d === 'figure') {
       const p = this.spot(ev.at || 'behind'); const g = new THREE.Group(); const em = new THREE.MeshBasicMaterial({ color: ev.eyes || 0xff2a6d, transparent: true, opacity: 0.9 });
       for (const sx of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 6), em); e.position.set(sx * 0.07, 1.62, 0); g.add(e); }
@@ -1745,6 +2019,7 @@ const Events = {
     } else if (d === 'show') { const o = level.objs.find(x => x.id === ev.id); if (o) { o._g.visible = true; o.hidden = false; } }
     else if (d === 'stalker') { if (level.stalker) { level.stalker.active = true; placeStalker(); AudioFX.slam(); toast(ev.text || '', 2.5); } }
     if (ev.toast) toast(ev.toast, 3);
+    if (ev.ach) unlock(ev.ach);
   }
 };
 function updateFigures(dt) {
@@ -1784,7 +2059,7 @@ function updateStalker(dt) {
   if (S2.i >= C.steps - 2 && (S2.hb = (S2.hb || 0) - dt) < 0) { AudioFX.heartbeat(0.45); S2.hb = 0.6; }
 }
 function stalkerCatch() {
-  const S2 = level.stalker; AudioFX.stinger(); AudioFX.boom(); FX.flash = 0.9; FX.shake = 1.2; unlock('hunted');
+  const S2 = level.stalker; AudioFX.heartbeat && AudioFX.heartbeat(0.7); unlock('hunted');
   if (PC.open) PC.close(); if (Phone.open) Phone.toggle(false);
   Dlg.start(pick(GAME.hunter.caught), () => { state.sanity = Math.max(5, state.sanity - 30); state.clock += (GAME.hunter.timeCost || 600) * D().time; S2.i = 0; S2.t = 0; });
 }
@@ -1918,6 +2193,14 @@ function interact() {
     addClue(o);
     if (o.read && !o._reading) { o._reading = true; Read.show(o, () => { o._reading = false; if (!o.lines || !o.lines.length) { Phone.trigger('look:' + o.id); Events.trigger('look:' + o.id); if (o.ach) unlock(o.ach); return; } interactTarget = o; doInspect(o); }); return; }
     doInspect(o);
+  } else if (o.kind === 'lock') {
+    AudioFX.ui && AudioFX.ui(); addClue(o);
+    if (o.opened) { Dlg.start(o.openLines || [[GAME.hero.name, 'Ya está abierto. Lo que había dentro ya es tuyo.']]); return; }
+    const openIt = () => Keypad.show(o.codeTitle || o.name, o.code, ok => { if (!ok) return; o.opened = true; AudioFX.creak && AudioFX.creak();
+      level.objs.forEach(x => { if (x.sealedBy === o.id) { x.sealed = false; x._g.visible = true; } });
+      unlock('lock_any'); if (o.ach) unlock(o.ach); $('#obj').textContent = objective();
+      Dlg.start(o.lines || [[GAME.hero.name, 'Clac. Se abre.']], () => { Events.trigger('lock:' + o.id); Phone.trigger && Phone.trigger('lock:' + o.id); }); });
+    if (o.before && !o._seen) { o._seen = true; Dlg.start(o.before, openIt); } else openIt();
   } else if (o.kind === 'npc') { Dlg.start(o.lines, () => { if (o.ach) unlock(o.ach); }, { pos: focusOf(o), dist: o.dist || 1.1 }); }
   else if (o.kind === 'pc') { PC.show(o); }
   else if (o.kind === 'phone') { Phone.toggle(true); }
@@ -1934,9 +2217,11 @@ const PARTNER = () => (GAME.partners || []).find(p => p.id === state.partner);
 function fmtP(t) { const p = PARTNER(); return String(t).replace(/\{p\}/g, p ? p.name : 'nadie').replace(/\{pp\}/g, p ? p.pet : 'tú'); }
 const Help = {
   n: 0, idle: 0, offered: false,
-  reset() { this.n = 0; this.idle = 0; this.offered = false; },
+  reset() { this.n = 0; this.ln = 0; this.idle = 0; this.offered = false; },
   next() { // pista fácil según el punto exacto en el que estás
-    const C = level.C, it = level.items.find(i => !i.gone && !i.fake && !i.hidden) || level.items.find(i => !i.gone && !i.fake);
+    const C = level.C, it = level.items.find(i => !i.gone && !i.fake && !i.hidden && !i.sealed) || level.items.find(i => !i.gone && !i.fake && !i.sealed);
+    if (!it) { const sl = level.items.find(i => !i.gone && !i.fake && i.sealed); const L = sl && level.objs.find(x => x.id === sl.sealedBy && !x.opened);
+      if (L) { this.ln = (this.ln || 0) + 1; return this.ln < 2 ? (L.hint || `Lo que te falta está dentro de «${L.name}». La combinación está escrita en algún papel de esta sala.`) : `«${L.name}» se abre con ${L.code}.`; } }
     if (it) return it.hint || `Te falta «${it.name}». ${it.hidden ? 'Solo aparece con la luz apagada: apágala (busca el interruptor o el flexo) y mira el suelo y las paredes.' : 'Está en esta sala: busca el brillo y acércate con WASD.'}`;
     if (C.pc && !level.pcUnlocked && C.pc.required !== false) { this.n++; return this.n < 2 ? (C.pc.hint || 'Hay algo que pide una contraseña. La pista está escrita en esta sala.') : `Escribe «${C.pc.password}» en ${C.pc.title || 'el ordenador'}.`; }
     if (!level.solved && C.code) { this.n++; return this.n < 2 ? (C.codeHelp || C.codeFamily || 'La puerta tiene un código. Lee los papeles y escucha los sonidos de la sala.').replace(/^[^:]*: /, '') : `El código de la puerta es ${C.code}.`; }
@@ -2081,7 +2366,7 @@ function togglePause(force) {
 // ---------- Menú principal ----------
 const MENU = [
   { id: 'start', label: () => state.maxChapter > 0 ? 'Continuar' : (GAME.startLabel || 'Empezar juego'), desc: () => state.maxChapter > 0 ? `Vuelve a la noche justo donde la dejaste: ${CHAPTERS[state.chapter].title}.` : GAME.menuDesc.start, act: () => { AudioFX.init(); if (!state.diffChosen) { openPanel('diff', true); return; } if (GAME.partners && !state.partner) { openPanel('partner', true); return; } state.fromMenu = true; Phone.resetAll(); startChapter(state.chapter || 0); } },
-  { id: 'partner', label: () => 'Tu pareja', badge: () => (PARTNER() || {}).name || '—', desc: () => 'Elige de quién eres pareja. Te guiará por el móvil en cada capítulo.', act: () => openPanel('partner') },
+  { id: 'partner', label: () => GAME.partnerLabel || 'Tu pareja', badge: () => (PARTNER() || {}).name || '—', desc: () => GAME.partnerMenuDesc || 'Elige de quién eres pareja. Te guiará por el móvil en cada capítulo.', act: () => openPanel('partner') },
   { id: 'diff', label: () => 'Dificultad', badge: () => D().name, desc: () => D().desc, act: () => openPanel('diff') },
   { id: 'codice', label: () => GAME.loreName || 'Códice', badge: () => `${loreUnlocked().length}/${(GAME.lore || []).length}`, desc: () => 'El lore del mundo: personajes, lugares y lo que pasó antes de esta noche.', act: () => openPanel('codice') },
   { id: 'chapters', label: 'Capítulos', badge: () => `${Math.min(state.maxChapter + 1, CHAPTERS.length)}/${CHAPTERS.length}`, desc: () => GAME.menuDesc.chapters, act: () => openPanel('chapters') },
