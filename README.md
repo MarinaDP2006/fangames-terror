@@ -10,6 +10,11 @@ Terror psicológico, sin sustos de golpe: notas que cambian al releerlas, mensaj
 
 Cada carpeta es una web estática independiente (abre su `index.html`).
 
+## Versión 3.2 (12/11/2026)
+- Sonidos grabados de verdad (pack RPG de Kenney, licencia CC0, en `*/sfx/`): pasos, puertas que se abren y se cierran, bisagras, páginas, cerrojos.
+- Loki: cuatro escenarios nuevos (los aposentos de Loki, la sala del trono de Asgard, el Observatorio del Bifrost y el ático de la Torre en Nueva York) y la Statesman con más detalle. Ahora son 10 capítulos.
+- Loki: sombras de Loki (siempre con las manos a la espalda; guarda la distancia y, si lo acorralas, reaparece detrás de ti) y de Thanos (con la mano alzada hacia ti; se acerca cuando te mueves y retrocede cuando te quedas quieta).
+
 ## Versión 3.1 (12/11/2026)
 - Se pueden coger todos los objetos: si una nota o una caja tapa a otro objeto, gana el objeto, y basta con apuntar cerca.
 - Los muebles ya no se atraviesan (sofás, sillas, barriles, armarios…), y nunca apareces dentro de uno.

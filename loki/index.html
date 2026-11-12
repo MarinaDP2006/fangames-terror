@@ -975,6 +975,293 @@ CHAPTERS.forEach(c => { c.events = (c.events || []).concat([{ on: 't:28', do: 'v
     { ch: 4, t: 'La TVA', text: 'La Autoridad de Variación Temporal vigila que la historia siga su curso «sagrado» y poda las ramas que se desvían. Sus agentes, como Mobius, capturan variantes y las borran con bastones de reinicio. En este juego, la TVA tiene un archivo entero dedicado a esta noche.' }
   );
 
+  // ================= v4 · Sombras de Loki y Thanos + cuatro escenarios nuevos =================
+  GAME.shadows = ['loki'];
+  GAME.lokiStare = ['La sombra de Loki inclina la cabeza, como si te estuviera midiendo.', 'Sigue con las manos a la espalda. Siempre. Como si escondiera algo. O como si no quisiera tocarte.', '«No me mires a mí. Mira lo que te he dejado.» No ha movido la boca.', 'La sombra da un paso atrás cuando tú das uno adelante. Es un baile. Él lo dirige.'];
+  GAME.lokiGone = ['Parpadeas. La sombra ya no está delante. Notas un aliento frío en la nuca.', 'Lo has acorralado. Se ha deshecho en humo verde. Ahora está detrás de ti.'];
+  GAME.thanosStare = ['La mano de la sombra sigue alzada hacia ti. No te señala. Te está esperando.', 'Cuanto más quieta estás, más se aleja. Cuanto más corres, más cerca está.', 'Una voz muy grave, muy tranquila, dentro de tu cabeza: «Quédate quieta, pequeña».'];
+  GAME.thanosNear = ['Su mano te roza la cara. Está fría como una moneda. Luego, nada.', 'Por un segundo el mundo entero se queda en silencio. Después la sombra ya no está.', 'Huele a piedra caliente y a ceniza. Has dejado que se acerque demasiado.'];
+  GAME.achievements.push(
+    { id: 'sombra_loki', icon: '🐍', name: 'Manos a la espalda', hint: 'Mira fijamente a la sombra de Loki.' },
+    { id: 'sombra_thanos', icon: '✋', name: 'La mano alzada', hint: 'Mira fijamente a la sombra de Thanos.' },
+    { id: 'sombra_cerca', icon: '🌑', name: 'Demasiado cerca', hint: 'Deja que la sombra de Thanos te alcance.' },
+    { id: 'cap_cuarto', icon: '🛏️', name: 'Su cuarto', hint: 'Sal de los aposentos de Loki.' },
+    { id: 'cap_trono', icon: '👑', name: 'Cuatro años con otra cara', hint: 'Sal de la sala del trono.' },
+    { id: 'cap_bifrost', icon: '🌈', name: 'Abre el puente', hint: 'Sal del Observatorio del Bifrost.' },
+    { id: 'cap_nuevayork', icon: '🏙️', name: 'Dios enclenque', hint: 'Sal del ático de la Torre.' }
+  );
+  const VOX = [{ on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }];
+
+  // ---------- II · Los aposentos de Loki ----------
+  const CUARTO = {
+    id: 'cuarto', time: '22:10', title: 'Los aposentos de Loki', place: 'Asgard · Ala oeste del palacio', loading: 'Subiendo por la escalera de servicio del palacio…',
+    epigraph: '«Su cuarto era el único sitio de Asgard donde nadie le pedía que fuera otro.»',
+    room: { w: 6.2, d: 5.6, h: 3.6, wallTex: { id: 'medieval_blocks_03', s: 2.2, tint: 0x8aa08a }, floorTex: { id: 'herringbone_parquet', s: 1.6, tint: 0x6a5a40 }, ceilTex: { id: 'dark_wooden_planks', s: 2, tint: 0x6a7a6a }, skirt: 0x1a2a1a, shadowFrom: 'main', floor: 'parquet', fog: 0x060c08, fogDensity: 0.035, sky: 0x3a8a5a, ground: 0x040806, ambient: 0.42, motes: 0x9affc0, objects: [
+      M2('Chandelier_03', [0, 3.6, 0.3], { id: 'main', hang: true, s: 0.85, light: { c: 0xd8ffd0, i: 1.05, y: -0.8, d: 10, bulb: false } }),
+      M2('old_bed_frame', [-2.05, 0, -1.3], { rot: Math.PI / 2, tint: 0x4a7a5a }),
+      M2('wooden_bookshelf_worn', [2.85, 0, -1.3], { rot: -Math.PI / 2, s: 1.15 }), M2('wooden_bookshelf_worn', [2.85, 0, 1.0], { rot: -Math.PI / 2, s: 1.15 }),
+      M2('book_encyclopedia_set_01', [2.85, 0.9, -1.35], { rot: -Math.PI / 2, solid: false }), M2('book_encyclopedia_set_01', [2.85, 1.35, 0.95], { rot: -Math.PI / 2, solid: false }),
+      M2('WoodenTable_03', [0.4, 0, -2.3], { s: [1.4, 0.95, 1.0], tint: 0x5a4a3a }),
+      M2('dining_chair_02', [0.4, 0, -1.55], { rot: Math.PI, tint: 0x3a5a3a }),
+      M2('vintage_oil_lamp', [-0.15, 0.79, -2.45], { s: 0.8, kind: 'light', name: 'Apagar / encender el candil', light: { c: 0xffd8a0, i: 0.6, y: 0.35, d: 4, bulb: false } }),
+      M2('brass_candleholders', [1.0, 0.79, -2.5], { s: 0.4, solid: false, light: { c: 0xffa040, i: 0.4, y: 0.45, d: 3, flick: true, bulb: false } }),
+      M2('ornate_mirror_01', [-1.0, 1.65, -2.76], { center: true, kind: 'inspect', id: 'espejo', name: 'Espejo de Loki', focusY: 1.65, dist: 0.9, emit: 0x0a3a1a, emitI: 0.2, lines: [['Tú', 'En el vaho del espejo hay tres cifras escritas con el dedo, del revés: 503.'], ['Eco de Loki', 'Los espejos siempre mienten al revés. Léelo como lo leería alguien que vive dentro.']] }),
+      M2('GothicCabinet_01', [2.6, 0, 2.35], { rot: Math.PI, s: 0.8, kind: 'lock', id: 'ilusiones', name: 'Arcón de las ilusiones (tres cifras)', focusY: 1.0, code: '305', codeTitle: 'Arcón de las ilusiones · tres runas', hint: 'El espejo escribe al revés: 503 se lee 305.', lines: [['Tú', 'Dentro, envuelta en un paño verde, hay una serpiente tallada en madera. Y una nota con letra de niño.']] }),
+      { type: 'item', at: [2.6, 0.9, 2.05], shape: 'branch', color: 0x3aff9a, kind: 'item', sealed: true, sealedBy: 'ilusiones', name: 'Serpiente de madera', lines: [['Tú', '«Me convertí en serpiente porque a Thor le encantan las serpientes. Me cogió para mirarme. Y entonces le apuntañé.» Con faltas de ortografía.'], ['Eco de Loki', 'Tenía ocho años. Lo volvería a hacer. Él también se ríe cuando lo cuenta.']] },
+      { type: 'phone', at: [0.95, 0.79, -2.15], kind: 'phone', name: 'Móvil midgardiano' },
+      F([0.05, 0.792, -2.1], 'thor', 'Lista del escritorio', 'Veces que Thor me creyó', ['Cuando dije que había cambiado: 0', 'Cuando dije que era su hermano: 1', '', 'Solo cuento una.'], { paper: '#1a2a1a', ink: '#cfe8c0', glow: 0.25 }),
+      WF('n', [2.1, 1.75], 'orden', 'Nota clavada en la pared', 'En orden', ['Primero, lo que me dio madre.', 'Luego, las veces que Thor me creyó.', 'Al final, lo que guarda mi sueño.']),
+      { type: 'frame', wall: 'e', at: [0, 2.05, -0.15], w: 0.8, h: 0.45, text: ['#Regalos de madre', '8 libros con cinta verde'], textOpt: { bg: '#0e1a10', color: '#cfe8c0', size: 34, big: 42 }, frameColor: 0xd4a64a, kind: 'inspect', id: 'regalos', name: 'Placa del estante', focusY: 2.05, dist: 1.0, lines: [['Tú', 'Ocho libros con cinta verde. Todos regalos de Frigga. Los únicos con el lomo gastado.']] },
+      { type: 'frame', wall: 'w', at: [0, 1.55, -1.3], w: 0.9, h: 0.42, text: ['#Cabecero', '2 serpientes talladas', 'que guardan el sueño'], textOpt: { bg: '#16120a', color: '#e8d8a0', size: 32, big: 40 }, frameColor: 0x2a3a2a, kind: 'inspect', id: 'cabecero', name: 'Cabecero de la cama', focusY: 1.55, dist: 1.1, lines: [['Tú', 'Dos serpientes talladas en el cabecero, mordiéndose la cola. Guardan el sueño de quien duerme aquí.']] },
+      { type: 'window', wall: 'w', at: [0, 2.0, 1.5], w: 1.2, h: 1.6, view: 'asgard', frame: 0x2a3a2a, light: 0xffd080 },
+      { type: 'banner', wall: 'n', at: [-2.4, 2.2], color: 0x1a4a2a, emblem: 0xd4a64a }, { type: 'banner', wall: 's', at: [1.4, 2.2], color: 0x1a4a2a, emblem: 0xd4a64a },
+      { type: 'helmet', at: [-2.5, 0, 1.9], kind: 'inspect', id: 'casco2', name: 'Soporte del casco de gala', focusY: 1.45, lines: [['Tú', 'Su casco de gala, con los cuernos pulidos. Hay huellas de dedos en el oro. Pequeñas. Como las mías.']] },
+      { type: 'item', at: [0.75, 0.84, -2.2], shape: 'feather', color: 0x3aff9a, kind: 'item', name: 'Pluma verde de Loki', lines: [['Tú', 'Una pluma de escribir, verde, con la punta mordida.'], ['Eco de Loki', 'Escribo las mentiras a mano. Así me salen mejor.']] },
+      { type: 'item', at: [2.7, 1.02, -1.0], shape: 'book', color: 0x3aff9a, kind: 'item', name: 'Libro de ilusiones de Frigga', lines: [['Eco de Frigga', 'Para mi hijo pequeño: la magia no sirve para esconderse. Sirve para que te encuentren quienes de verdad te buscan.']] },
+      { type: 'item', at: [-2.0, 0.62, -0.8], shape: 'paper', color: 0xe8dcc0, kind: 'item', name: 'Carta de Odín sin abrir', lines: [['Tú', 'Una carta con el sello de Odín. Lleva siglos cerrada.'], ['Tú', 'La abro. Una sola línea: «Eres mi hijo». Y debajo, en la letra de Loki: «Demasiado tarde».']] },
+      { type: 'item', at: [-0.9, 0.05, 1.5], shape: 'cup', color: 0xc9a24a, kind: 'item', name: 'Copa volcada', lines: [['Tú', 'Una copa en el suelo. El vino aún está húmedo. Alguien se fue con prisa.']] },
+      { type: 'item', at: [2.7, 1.47, 0.9], shape: 'book', color: 0x3aff9a, kind: 'item', fake: true, name: 'Libro de ilusiones de Frigga' },
+      { type: 'graffiti', wall: 'e', at: [0, 2.6, 2.0], w: 1.4, hidden: true, text: ['TODO ES', 'UNA ILUSIÓN'], color: '#3aff9a', size: 90 },
+      { type: 'rug', at: [0.2, 0, 0.4], w: 2.6, d: 1.8, color: 0x1a3a22 },
+      { type: 'door', wall: 's', at: [-1.2, 0], code: true, kind: 'door', name: 'Puerta de los aposentos', color: 0x1a3a2a, focusY: 1.2, tex: 'dark_wooden_planks', tint: 0x7aa08a }
+    ] },
+    start: { at: [0.3, -0.7], yaw: 0 },
+    objective: 'Busca lo que Loki escondió en su cuarto',
+    code: '812', codeTitle: 'Puerta de los aposentos · tres cifras', codeObjective: 'Abre la puerta: lo de madre, lo de Thor y lo que guarda el sueño',
+    codeFamily: 'Loki: «Ocho de madre, una de Thor, dos serpientes. 812. No se lo digas a nadie».',
+    intro: [['Tú', 'Las 22:10. El cuarto de Loki. Huele a pergamino y a menta. Todo está ordenado. Demasiado ordenado.'], ['Tú', 'Hay alguien junto a la ventana, con las manos a la espalda. Cuando me acerco, ya está un poco más lejos.'], ['SISTEMA', 'Recoge lo que Loki escondió, abre el arcón y la puerta. La sombra no te hará daño. Si la acorralas, desaparece… y vuelve detrás de ti.']],
+    allFound: [['Tú', 'La pluma, el libro, la carta, la copa. Ahora la puerta: la nota de la pared dice en qué orden.']],
+    locked: 'Loki dejó más cosas aquí. Busca los brillos.',
+    events: [
+      { on: 't:30', do: 'presence', text: 'En la cama hay un hueco, como si alguien acabara de levantarse. Está caliente.' },
+      { on: 'item:0', do: 'whisper', text: 'NO TOQUES MIS COSAS' },
+      { on: 't:70', do: 'say', lines: [['{p} (móvil)', 'No mires mucho a la sombra de la ventana. Si la miras demasiado, te mira ella.']] },
+      { on: 'lock:ilusiones', do: 'heartbeat', n: 5, text: 'La letra de la nota es de niño. La firma, de adulto.' },
+      { on: 'found', do: 'flicker', dur: 1.5 }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Thor', delay: 3, msgs: ['Estás en su cuarto. Nunca me dejaba entrar.', 'Si ves una serpiente, no la cojas. Hazme caso. Tenía ocho años y aún me acuerdo.'] },
+      { on: 'found', from: 'Desconocido', msgs: ['¿Te gusta mi cuarto?', 'No lo desordenes. Madre lo dejaba siempre así.'] }
+    ],
+    exitName: 'Puerta de los aposentos'
+  };
+
+  // ---------- III · La sala del trono ----------
+  const pil = (x, z) => ({ type: 'pillar', at: [x, 0, z], r: 0.32, h: 5.6, color: 0xd8b878, metal: 0.5 });
+  const TRONO = {
+    id: 'trono', time: '22:20', title: 'La sala del trono', place: 'Asgard · Palacio de Odín', loading: 'Cruzando los pasillos dorados del palacio…',
+    epigraph: '«Se sentó en ese trono cuatro años con la cara de su padre. Nadie le miró a los ojos. Nadie notó la diferencia.»',
+    room: { w: 8, d: 9.6, h: 5.6, wallTex: { id: 'medieval_blocks_03', s: 2.4, tint: 0xe0c080 }, floorTex: { id: 'castle_brick_07', s: 2, tint: 0xd8c098 }, ceilTex: { id: 'dark_wooden_planks', s: 2.5, tint: 0x8a6a3a }, skirt: 0x5a3a10, shadowFrom: 'main', floor: 'stone', fog: 0x140c04, fogDensity: 0.022, sky: 0xffd080, ground: 0x100804, ambient: 0.55, motes: 0xffd080, objects: [
+      M2('Chandelier_01', [0, 5.6, -0.2], { id: 'main', hang: true, s: 1.4, light: { c: 0xffd8a0, i: 1.35, y: -0.8, d: 16, bulb: false } }),
+      { type: 'throne', at: [0, 0, -3.75], kind: 'inspect', id: 'trono', name: 'Hlidskjalf, el trono de Odín', focusY: 1.6, dist: 1.8, lines: [['Tú', 'El trono de Odín. Oro hasta el techo, y un cojín rojo con la forma de alguien que se sentó demasiadas veces.'], ['Tú', 'En el reposabrazos, arañado con una uña: «Yo también fui rey».']] },
+      pil(-3.0, -2.4), pil(3.0, -2.4), pil(-3.0, -0.2), pil(3.0, -0.2), pil(-3.0, 2.0), pil(3.0, 2.0), pil(-3.0, 4.0), pil(3.0, 4.0),
+      M2('Lantern_01', [-1.9, 0, -3.3], { s: 1.4, kind: 'light', name: 'Apagar / encender los braseros', light: { c: 0xff9a40, i: 0.9, y: 0.6, d: 7, flick: true, bulb: false } }),
+      M2('Lantern_01', [1.9, 0, -3.3], { s: 1.4, light: { c: 0xff9a40, i: 0.9, y: 0.6, d: 7, flick: true, bulb: false } }),
+      { type: 'rug', at: [0, 0, 1.0], w: 1.8, d: 7.0, color: 0x7a1010 },
+      { type: 'window', wall: 'e', at: [0, 3.3, 0.9], w: 1.4, h: 2.6, view: 'asgard', frame: 0xb08a3a, light: 0xffd080 },
+      { type: 'window', wall: 'w', at: [0, 3.3, 0.9], w: 1.4, h: 2.6, view: 'asgard', frame: 0xb08a3a, light: 0xffd080 },
+      { type: 'banner', wall: 'n', at: [-2.6, 3.2], w: 1.1, h: 3.0, color: 0x7a1010, emblem: 0xd4a64a }, { type: 'banner', wall: 'n', at: [2.6, 3.2], w: 1.1, h: 3.0, color: 0x7a1010, emblem: 0xd4a64a },
+      { type: 'frame', wall: 's', at: [-2.3, 2.7], w: 2.4, h: 1.6, art: 'tapestry', frameColor: 0xd4a64a, kind: 'inspect', id: 'mural', name: 'Mural de la paz de Odín', focusY: 2.7, dist: 1.6, lines: [['Tú', 'Odín repartiendo frutas a los Nueve Reinos. Todos sonríen. Parece pintado encima de otra cosa.'], ['Tú', 'Si apago los braseros, quizá se vea lo de debajo.']] },
+      { type: 'graffiti', wall: 's', at: [2.4, 2.6], w: 2.0, hidden: true, text: ['HELA Y', '1 LOBO', '(tercera)'], color: '#ff4a3a', size: 80 },
+      { type: 'frame', wall: 'w', at: [0, 1.9, -1.3], w: 0.9, h: 0.9, text: ['#Los Reinos', 'ᛟ ᛟ ᛟ', 'ᛟ ᛟ ᛟ', 'ᛟ ᛟ ᛟ', 'primera cifra'], textOpt: { bg: '#1a1208', color: '#f2c860', size: 40, big: 44 }, frameColor: 0xd4a64a, kind: 'inspect', id: 'reinos', name: 'Tabla de los Reinos', focusY: 1.9, dist: 1.0, lines: [['Tú', 'Una runa por reino. Las cuento: nueve. Debajo pone «primera cifra».']] },
+      { type: 'frame', wall: 'e', at: [0, 1.9, -1.3], w: 0.9, h: 0.6, text: ['#Hugin · Munin', 'Los cuervos del rey', 'segunda cifra'], textOpt: { bg: '#1a1208', color: '#f2c860', size: 36, big: 44 }, frameColor: 0xd4a64a, kind: 'inspect', id: 'cuervos', name: 'Placa de los cuervos', focusY: 1.9, dist: 1.0, lines: [['Tú', 'Dos cuervos: Pensamiento y Memoria. Odín los mandaba a espiar. Segunda cifra: dos.']] },
+      { type: 'frame', wall: 'n', at: [1.55, 1.45], w: 0.7, h: 0.45, text: ['#El heredero', 'Thor, hijo de Odín', '1500 años'], textOpt: { bg: '#2a1a08', color: '#f2d080', size: 30, big: 38 }, frameColor: 0xd4a64a, kind: 'inspect', id: 'placa', name: 'Placa junto al trono', focusY: 1.45, dist: 1.0, lines: [['Tú', 'Thor, 1500 años. Ni una mención al hijo pequeño.']] },
+      M2('treasure_chest', [2.4, 0, -2.0], { rot: -Math.PI / 2, s: 0.9, kind: 'lock', id: 'cofre', name: 'Cofre del rey (cuatro cifras)', focusY: 0.6, code: '1500', codeTitle: 'Cofre del rey · cuatro runas', hint: 'La placa junto al trono: el heredero tiene 1500 años.', lines: [['Tú', 'Dentro, sobre terciopelo, una lanza dorada partida en dos.']] }),
+      { type: 'item', at: [2.1, 0.6, -2.0], shape: 'dagger', color: 0xd4a64a, kind: 'item', sealed: true, sealedBy: 'cofre', name: 'Gungnir, partida', lines: [['Tú', 'La lanza de Odín, rota por la mitad.'], ['Eco de Loki', 'La sostuve una vez. Pesa menos de lo que crees. Lo que pesa es que todos te miren.']] },
+      { type: 'phone', at: [-0.9, 0.56, -2.85], kind: 'phone', name: 'Móvil midgardiano' },
+      { type: 'item', at: [-1.3, 0.05, -1.0], shape: 'crown', color: 0xb0b0c0, kind: 'item', name: 'Casco abollado de Thor', lines: [['Tú', 'El casco alado de Thor, abollado. Hay un golpe con forma de puño pequeño.'], ['Eco de Loki', 'Fui yo. A los doce años. Lo tiene expuesto como un trofeo. Es lo más bonito que ha hecho por mí.']] },
+      { type: 'item', at: [0.9, 0.6, -2.95], shape: 'cup', color: 0xd4a64a, kind: 'item', name: 'Copa del banquete', lines: [['Tú', 'Una copa dorada en el escalón del trono. Aún huele a hidromiel.']] },
+      { type: 'item', at: [-2.4, 0.05, 1.0], shape: 'feather', color: 0x222222, kind: 'item', name: 'Pluma de cuervo', lines: [['Tú', 'Una pluma negra, enorme. Hugin o Munin. Ya no vuelan para nadie.']] },
+      { type: 'item', at: [0.45, 1.02, -3.85], shape: 'paper', color: 0xe8dcc0, kind: 'item', name: 'Carta de Frigga a Loki', lines: [['Tú', '«Hijo: no necesitas el trono para que te quiera. Pero si te sientas, siéntate recto.»'], ['Tú', 'Está en el asiento del trono. Como si alguien la hubiera dejado ahí para que él la encontrara.']] },
+      { type: 'item', at: [2.5, 0.05, 2.9], shape: 'feather', color: 0x222222, kind: 'item', fake: true, name: 'Pluma de cuervo' },
+      { type: 'door', wall: 's', at: [0, 0], code: true, kind: 'door', name: 'Gran portón del salón', color: 0x5a3a10, focusY: 1.2, tex: 'dark_wooden_planks', tint: 0xd8b070 }
+    ] },
+    start: { at: [0, 3.0], yaw: 0, pitch: 0.42 },
+    objective: 'Recoge lo que queda del rey en la sala del trono',
+    code: '921', codeTitle: 'Gran portón · tres cifras', codeObjective: 'Abre el portón: reinos, cuervos y lo que esconde el mural',
+    codeHelp: 'Cuenta las runas de la tabla oeste y los cuervos de la placa este. La tercera cifra está bajo la pintura de la pared sur: apaga los braseros para verla.',
+    codeFamily: 'Loki: «Nueve reinos, dos cuervos y un lobo que padre escondió bajo la pintura. 921».',
+    intro: [['Tú', 'Las 22:20. La sala del trono de Asgard. Columnas de oro hasta el techo. El trono, vacío, al fondo.'], ['Tú', 'Hay una figura en el salón. Alta, quieta, con las manos a la espalda. Como alguien que espera a que lo coronen.'], ['SISTEMA', 'Recoge lo que falta, abre el cofre del rey y el portón. Los braseros del trono se pueden apagar.']],
+    allFound: [['Tú', 'El casco, la copa, la pluma, la carta. La puerta pide tres cifras: reinos, cuervos… y algo pintado debajo del mural.']],
+    locked: 'Aún quedan cosas del rey en esta sala.',
+    events: [
+      { on: 't:25', do: 'presence', text: 'El trono cruje. Nadie se ha sentado. Lo has oído igual.' },
+      { on: 'look:trono', do: 'say', lines: [['Eco de Loki', 'Me senté ahí cuatro años con la cara de padre. Nadie lo notó. Nadie le miraba a la cara.']] },
+      { on: 'dark', do: 'whisper', text: 'HELA' },
+      { on: 'lock:cofre', do: 'heartbeat', n: 5 },
+      { on: 't:80', do: 'say', lines: [['{p} (móvil)', 'Siéntate en el trono un momento. Descansa. Te lo mereces.']] },
+      { on: 't:110', do: 'say', lines: [['{p} (móvil)', '¿Qué trono? Yo no te he dicho eso. No te sientes. Nunca te sientes en ese trono.']] }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Thor', delay: 3, msgs: ['La sala del trono. Ahí me iban a coronar y lo estropeé todo.', 'Si ves a alguien con las manos a la espalda, no le tengas miedo. Así esperaba Loki cuando era niño. Así espera a que alguien le elija.'] },
+      { on: 'found', from: 'Desconocido', msgs: ['Bonito trono, ¿verdad?', 'Pesa más cuando no es tuyo.'] }
+    ],
+    exitName: 'Gran portón'
+  };
+
+  // ---------- IV · El Observatorio del Bifrost ----------
+  const BIFROST = {
+    id: 'bifrost', time: '22:30', title: 'El Observatorio del Bifrost', place: 'Asgard · Al final del puente arcoíris', loading: 'Corriendo por el puente arcoíris…',
+    epigraph: '«Heimdall lo veía todo desde aquí. Esa noche vio una sombra con la mano alzada caminando por su puente. Y no pudo cerrar los ojos.»',
+    shadows: ['loki', 'thanos'],
+    room: { w: 7.2, d: 7.2, h: 5.2, wallTex: { id: 'metal_plate', s: 1.6, tint: 0xd0a050, metal: 0.6 }, floorTex: { id: 'metal_plate_02', s: 1.4, tint: 0xb08840 }, ceilTex: { id: 'metal_plate', s: 1.6, tint: 0x5a4a2a }, skirt: 0x3a2a10, shadowFrom: 'main', floor: 'metal', fog: 0x080604, fogDensity: 0.03, sky: 0xffc070, ground: 0x080604, ambient: 0.38, motes: 0xffe0a0, objects: [
+      M2('caged_hanging_light', [0, 5.2, 0], { id: 'main', hang: true, s: 1.0, light: { c: 0xffd8a0, i: 1.1, y: -0.6, d: 12 } }),
+      { type: 'ring', at: [0, 0, 0], r: 2.3, y0: 3.3, spin: 0.22 },
+      { type: 'swordStand', at: [0, 0, 0], kind: 'pc', name: 'Hofund, la espada de Heimdall (escribe un destino)', focusY: 1.4 },
+      { type: 'rainbow', at: [0, 0, 2.2], w: 1.3, d: 2.9 },
+      { type: 'pillar', at: [-3.0, 0, -3.0], r: 0.24, h: 5.2, color: 0xd4a64a }, { type: 'pillar', at: [3.0, 0, -3.0], r: 0.24, h: 5.2, color: 0xd4a64a }, { type: 'pillar', at: [-3.0, 0, 3.0], r: 0.24, h: 5.2, color: 0xd4a64a }, { type: 'pillar', at: [3.0, 0, 3.0], r: 0.24, h: 5.2, color: 0xd4a64a },
+      { type: 'window', wall: 'n', at: [0, 2.6], w: 3.0, h: 2.2, view: 'space', frame: 0xb08a3a, light: 0x9a8aff },
+      { type: 'window', wall: 'e', at: [0, 2.6, 0], w: 1.6, h: 2.0, view: 'asgard', frame: 0xb08a3a, light: 0xffd080 },
+      { type: 'window', wall: 'w', at: [0, 2.6, 0], w: 1.6, h: 2.0, view: 'asgard', frame: 0xb08a3a, light: 0xffd080 },
+      M2('Lantern_01', [-2.4, 0, -2.4], { s: 1.2, kind: 'light', name: 'Apagar / encender el farol', light: { c: 0xffb060, i: 0.7, y: 0.5, d: 5, flick: true, bulb: false } }),
+      M2('Lantern_01', [2.4, 0, -2.4], { s: 1.2, light: { c: 0xffb060, i: 0.7, y: 0.5, d: 5, flick: true, bulb: false } }),
+      WF('w', [0, 1.6, -1.7], 'guardia', 'Tablilla de guardia', 'Turno de Heimdall', ['Años vigilando sin cerrar los ojos:', '1200.', '', 'Veces que se distrajo: 1.', 'Fue por mirarte a ti.']),
+      M2('treasure_chest', [2.5, 0, 2.3], { rot: -Math.PI / 2 - 0.3, s: 0.85, kind: 'lock', id: 'arcon', name: 'Arcón de Heimdall (cuatro cifras)', focusY: 0.6, code: '1200', codeTitle: 'Arcón de Heimdall · cuatro runas', hint: 'La tablilla de guardia de la pared oeste: 1200 años sin cerrar los ojos.', lines: [['Tú', 'Dentro hay una manta, una espada pequeña de entrenamiento y algo dorado que brilla como un ojo.']] }),
+      { type: 'item', at: [2.25, 0.55, 2.1], shape: 'gem', color: 0xffc040, kind: 'item', sealed: true, sealedBy: 'arcon', name: 'Ojo de Heimdall', lines: [['Eco de Heimdall', 'Mira a través de él, pequeña luz. Verás lo que yo veo.'], ['Tú', 'Miro. Veo una nave morada. Veo una mano dorada. Me veo a mí, de pie en un puente, sin miedo.']] },
+      { type: 'phone', at: [0.2, 0.575, 0.2], kind: 'phone', name: 'Móvil midgardiano' },
+      { type: 'item', at: [-2.2, 0.05, -1.4], shape: 'crown', color: 0xd4a64a, kind: 'item', name: 'Casco de Heimdall', lines: [['Tú', 'El casco de cuernos curvos de Heimdall. Está caliente por dentro, como si se lo acabara de quitar.']] },
+      { type: 'item', at: [1.4, 0.03, 1.8], shape: 'gem', color: 0xff9aff, kind: 'item', name: 'Esquirla del arcoíris', lines: [['Tú', 'Un trozo del puente. Cambia de color según lo miro. Zumba.']] },
+      { type: 'item', at: [2.3, 0.05, -1.2], shape: 'ring', color: 0xc0c0c0, kind: 'item', name: 'Moneda de Midgard', lines: [['Tú', 'Una moneda de veinticinco centavos de Nueva York. Aquí. En el fin del universo.'], ['Eco de Loki', 'Me la dio un niño en Manhattan, antes de que todo se rompiera. Pensó que era un mago de verdad.']] },
+      { type: 'item', at: [-2.3, 0.05, 1.2], shape: 'paper', color: 0xe8dcc0, kind: 'item', name: 'Carta de Loki a Heimdall', lines: [['Tú', '«Guardián: si la mortal llega hasta aquí, ábrele el puente. No me debes nada. Hazlo por ella.»']] },
+      { type: 'item', at: [-1.2, 0.03, 2.6], shape: 'gem', color: 0xff9aff, kind: 'item', fake: true, name: 'Esquirla del arcoíris' },
+      { type: 'door', wall: 's', at: [0, 0], kind: 'door', code: true, name: 'Salida al puente', color: 0x5a3a10, focusY: 1.2, tex: 'metal_plate_02', tint: 0xd0a050 }
+    ] },
+    start: { at: [0, 2.6], yaw: 0, pitch: 0.42 },
+    objective: 'Abre el Bifrost hacia Midgard',
+    pc: { dateText: 'ASGARD · OBSERVATORIO', title: 'Hofund · el puente', user: 'Escribe a dónde vas', avatar: '⚔', password: 'midgard', hint: 'A donde vas: el reino de los humanos. Thor te lo ha escrito: MIDGARD.', objective: 'Gira la espada: escribe MIDGARD', family: 'Heimdall: «Di a dónde vas y el puente te llevará. Midgard».',
+      wallpaper: 'El Bifrost despierta.',
+      apps: [
+        { icon: '🌈', name: 'Coordenadas', id: 'coord', html: '<p><b>Salida al puente: 6 · 3 · 1.</b></p><p>Son las coordenadas de Midgard en el anillo: sexto aro, tercer brazo, primera estrella.</p>' },
+        { icon: '👁', name: 'Lo que vio Heimdall', id: 'vis', html: '<p>Una sombra enorme caminando por el puente. Lleva una mano alzada. No camina hacia Asgard. Camina hacia ti.</p><p>Si te quedas quieta, se aleja. Si corres, te alcanza.</p>' }
+      ] },
+    code: '631', codeTitle: 'Salida al puente · tres cifras', codeObjective: 'Abre la salida con las coordenadas de Midgard (mira Hofund)',
+    codeFamily: 'Heimdall: «Seis, tres, uno. Midgard está donde siempre ha estado».',
+    intro: [['Tú', 'Las 22:30. El Observatorio, al final del puente arcoíris. La espada de Heimdall sigue clavada en el centro.'], ['Tú', 'Fuera, en el puente, hay una silueta enorme. Tiene una mano levantada. Hacia mí.'], ['SISTEMA', 'Dos sombras. La de Loki guarda las distancias. La de Thanos se acerca cuando te mueves y retrocede cuando te quedas quieta.']],
+    allFound: [['Tú', 'Casco, esquirla, moneda, carta. Ahora la espada: dile a dónde voy. Y después, la salida.']],
+    locked: 'Heimdall dejó cosas para ti. Búscalas antes de cruzar.',
+    events: [
+      { on: 't:18', do: 'presence', text: 'El anillo del techo gira un poco más rápido cuando te mueves.' },
+      { on: 'item:1', do: 'whisper', text: 'QUIETA' },
+      { on: 't:60', do: 'say', lines: [['{p} (móvil)', 'Corre. No te pares. Si te paras, te alcanza.']] },
+      { on: 't:95', do: 'say', lines: [['{p} (móvil)', 'Yo no te he dicho que corras. Al revés: quédate quieta cuando la veas. Quieta.']] },
+      { on: 'lock:arcon', do: 'heartbeat', n: 5 },
+      { on: 'found', do: 'flicker', dur: 2 }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Heimdall', delay: 3, msgs: ['Pequeña luz. Estás en mi observatorio.', 'Hay algo en mi puente. No le des la espalda y no corras hacia él.', 'Mi espada abre el camino si le dices a dónde vas.'] },
+      { on: 'item:2', from: 'Thor', msgs: ['Midgard. Ve a Midgard. Loki dejó un rastro en Nueva York.'] }
+    ],
+    exitName: 'Salida al puente'
+  };
+
+  // ---------- V · Nueva York ----------
+  const NY = {
+    id: 'nuevayork', time: '22:40', title: 'El ático de la Torre', place: 'Midgard · Nueva York, Manhattan', loading: 'Cayendo sobre Manhattan…',
+    epigraph: '«Aquí quiso ser rey de un planeta entero. Acabó incrustado en el suelo, mirando al techo, preguntándose cuándo se había equivocado.»',
+    shadows: ['loki', 'thanos'],
+    room: { w: 7.6, d: 6.2, h: 3.4, wallTex: { id: 'concrete_wall_004', s: 2, tint: 0xb0b0b8 }, floorTex: { id: 'concrete_floor_painted', s: 2, tint: 0x70707a }, ceilTex: { id: 'white_stucco', s: 2, tint: 0x6a6a70 }, skirt: 0x1a1a20, shadowFrom: 'main', floor: 'tile', fog: 0x0a0c12, fogDensity: 0.03, sky: 0x6a8aff, ground: 0x08080c, ambient: 0.45, motes: 0xaabbff, objects: [
+      M2('modern_ceiling_lamp_01', [0, 3.4, 0.4], { id: 'main', hang: true, light: { c: 0xe8f0ff, i: 1.0, y: -0.3, d: 11 } }),
+      M2('modern_ceiling_lamp_01', [-2.4, 3.4, -1.2], { hang: true, light: { c: 0xe8f0ff, i: 0.5, y: -0.3, d: 6 } }),
+      { type: 'window', wall: 'n', at: [-2.5, 1.7], w: 2.1, h: 2.3, view: 'newyork', rain: true, frame: 0x1a1a20, light: 0x8aa0ff },
+      { type: 'window', wall: 'n', at: [0, 1.7], w: 2.1, h: 2.3, view: 'newyork', rain: true, frame: 0x1a1a20 },
+      { type: 'window', wall: 'n', at: [2.5, 1.7], w: 2.1, h: 2.3, view: 'newyork', rain: true, frame: 0x1a1a20, light: 0x8aa0ff },
+      { type: 'crater', at: [0.9, 0, 0.2], r: 1.0, kind: 'inspect', id: 'crater', name: 'El agujero del suelo', focusY: 0.15, dist: 1.4, lines: [['Tú', 'Un hueco en el suelo con la forma de alguien. Lo dejaron aquí a golpes, como a un muñeco de trapo.'], ['Eco de Loki', 'No hablemos de esto. Nunca. «Dios enclenque». Qué falta de educación.']] },
+      { type: 'counter', at: [-3.4, 0, 0.6], rot: Math.PI / 2, w: 2.2 },
+      M2('bar_chair_round_01', [-2.55, 0, 0.1], {}), M2('bar_chair_round_01', [-2.55, 0, 1.1], {}),
+      M2('sofa_02', [1.5, 0, 2.6], { rot: Math.PI, tint: 0x3a3a44 }), M2('ArmChair_01', [3.2, 0, 1.0], { rot: -Math.PI / 2, tint: 0x5a5a66 }),
+      M2('potted_plant_02', [3.4, 0, -2.7], {}), M2('potted_plant_02', [-3.4, 0, -2.7], {}),
+      M2('metal_office_desk', [2.3, 0, -2.5], { tint: 0x8a8a96 }), M2('desk_lamp_arm_01', [2.8, 0.75, -2.6], { solid: false, kind: 'light', name: 'Apagar / encender el flexo', light: { c: 0xfff0d0, i: 0.5, y: 0.4, d: 3, bulb: false } }),
+      { type: 'frame', wall: 'e', at: [0, 1.75, -0.9], w: 0.9, h: 0.65, text: ['#NUEVA YORK · 2012', 'Invasión sobre Manhattan', 'Un dios con cuernos,', 'detenido en la Torre'], textOpt: { bg: '#f2ece0', color: '#1a1a1a', font: 'serif', size: 30, big: 40 }, kind: 'inspect', id: 'periodico', name: 'Periódico enmarcado', focusY: 1.75, dist: 1.0, lines: [['Tú', 'La portada de 2012. La foto de Loki está rayada con un bolígrafo. Alguien le ha dibujado un corazón en la frente.']] },
+      M2('metal_tool_chest', [3.45, 0, 2.6], { rot: -Math.PI / 2, kind: 'lock', id: 'caja', name: 'Caja fuerte de la Torre (cuatro cifras)', focusY: 0.8, code: '2012', codeTitle: 'Caja fuerte · cuatro cifras', hint: 'El periódico enmarcado de la pared este: la invasión fue en 2012.', lines: [['Tú', 'Dentro, un marco roto. Y una foto vieja.']] }),
+      { type: 'item', at: [3.0, 0.05, 2.6], shape: 'paper', color: 0xe8e8f0, kind: 'item', sealed: true, sealedBy: 'caja', name: 'Foto rota del equipo', lines: [['Tú', 'Seis héroes en una cafetería de shawarma, agotados. Alguien recortó a uno de la foto. En el hueco han escrito «L.»'], ['Eco de Loki', 'Me invitaron. Bueno, no. Pero me habrían invitado.']] },
+      { type: 'frame', wall: 's', at: [-0.4, 1.5], w: 0.45, h: 0.6, text: ['#ASCENSOR', 'Ático · planta 93', '«El código', 'es tu planta»'], textOpt: { bg: '#1a1a20', color: '#a8c0ff', size: 30, big: 36 }, kind: 'inspect', id: 'panel', name: 'Panel del ascensor', focusY: 1.5, dist: 0.9, lines: [['Tú', 'Planta 93. El ascensor se abre con el número de la planta.']] },
+      { type: 'phone', at: [-3.4, 1.12, 1.4], kind: 'phone', name: 'Móvil midgardiano' },
+      { type: 'item', at: [1.75, 0.06, 0.75], shape: 'dagger', color: 0xd4a64a, kind: 'item', name: 'Cetro sin gema', lines: [['Tú', 'El cetro de Loki, con el hueco vacío donde iba la piedra azul.'], ['Eco de Loki', 'Me lo dio él. El de la mano alzada. «Para que me traigas un mundo», dijo. No le traje nada.']] },
+      { type: 'item', at: [-3.4, 1.12, 0.1], shape: 'ring', color: 0x8a8a9a, kind: 'item', name: 'Bozal de metal', lines: [['Tú', 'Un bozal de metal. Se lo pusieron para que no pudiera hablar. Para que no pudiera mentir.'], ['Tú', 'Por dentro tiene arañazos. Como si alguien hubiera intentado decir algo igual.']] },
+      { type: 'item', at: [0.9, 0.05, 2.0], shape: 'cup', color: 0xd8a060, kind: 'item', name: 'Vaso de whisky volcado', lines: [['Tú', '«¿Te ofrezco una copa?», le dijeron aquí, justo antes de que todo se torciera. El vaso sigue en el suelo.']] },
+      { type: 'item', at: [-1.6, 0.05, -1.5], shape: 'crown', color: 0xd4a64a, kind: 'item', name: 'Cuerno roto del casco', lines: [['Tú', 'Un cuerno dorado, partido. Tiene la punta manchada de algo morado.']] },
+      { type: 'item', at: [3.0, 0.06, -0.4], shape: 'dagger', color: 0xd4a64a, kind: 'item', fake: true, name: 'Cetro sin gema' },
+      { type: 'graffiti', wall: 'w', at: [0, 2.5, -1.6], w: 1.6, hidden: true, text: ['ÉL TE', 'ESTÁ MIRANDO'], color: '#b06aff', size: 90 },
+      { type: 'rug', at: [1.5, 0, 1.6], w: 2.6, d: 1.6, color: 0x2a2a34 },
+      { type: 'door', wall: 's', at: [-1.6, 0], code: true, kind: 'door', name: 'Ascensor privado', color: 0x3a3a44, focusY: 1.2, tex: 'metal_plate_02', tint: 0xb0b0c0 }
+    ] },
+    start: { at: [-0.6, 1.9], yaw: 0, pitch: 0.42 },
+    objective: 'Sigue el rastro de Loki por el ático',
+    code: '93', codeTitle: 'Ascensor privado · planta', codeObjective: 'Llama al ascensor con el número de la planta del ático',
+    codeFamily: 'Loki: «Planta noventa y tres. Subí andando la primera vez. No preguntes».',
+    intro: [['Tú', 'Las 22:40. Nueva York. Un ático de cristal en lo alto de una torre. Llueve sobre Manhattan.'], ['Tú', 'En el suelo hay un agujero con forma de persona. En el cristal se reflejan dos sombras que no están en la habitación.'], ['SISTEMA', 'Recoge el rastro, abre la caja fuerte y el ascensor. Recuerda: si te quedas quieta, la sombra de la mano alzada se aleja.']],
+    allFound: [['Tú', 'El cetro, el bozal, el vaso, el cuerno. El ascensor pide la planta. Está escrito junto a la puerta.']],
+    locked: 'Loki dejó más cosas en este ático.',
+    events: [
+      { on: 't:20', do: 'presence', text: 'En el reflejo del cristal hay alguien sentado en el sofá. En el sofá no hay nadie.' },
+      { on: 'look:crater', do: 'heartbeat', n: 3 },
+      { on: 'item:0', do: 'whisper', text: 'TRÁEMELO' },
+      { on: 't:65', do: 'say', lines: [['{p} (móvil)', 'Sube a la azotea. Desde ahí te veo. Corre.']] },
+      { on: 't:100', do: 'say', lines: [['{p} (móvil)', '¿Azotea? Yo no te he dicho nada. No corras. Esa cosa va a por quien corre.']] },
+      { on: 'lock:caja', do: 'heartbeat', n: 5 },
+      { on: 'found', do: 'blackout', dur: 2 }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Darcy', delay: 3, msgs: ['¿Estás en la Torre? ¿LA Torre?', 'Hace años un dios con cuernos intentó conquistar el mundo desde ese ático. Acabó empotrado en el suelo.', 'Si ves algo morado, no lo mires mucho rato.'] },
+      { on: 'item:1', from: 'Thor', msgs: ['El bozal. Se lo puse yo. Me arrepiento cada día.'] }
+    ],
+    exitName: 'Ascensor privado'
+  };
+
+  // la Statesman también, con las dos sombras y un poco más de vida
+  C = byId('statesman'); C.shadows = ['loki', 'thanos'];
+  C.room.objects.push(
+    { type: 'banner', wall: 'e', at: [0, 1.85, -1.7], w: 0.7, h: 1.5, color: 0x6a1010, emblem: 0xd4a64a },
+    { type: 'window', wall: 'w', at: [0, 1.9, -0.6], w: 1.3, h: 0.7, view: 'space', frame: 0x2a2a34, light: 0x6a5aa0 },
+    M2('Lantern_01', [2.3, 0, 0.5], { s: 0.9, light: { c: 0xffb060, i: 0.35, y: 0.4, d: 3, flick: true, bulb: false } })
+  );
+  byId('tortura').shadows = ['loki', 'thanos'];
+  // el espejo de la Bóveda ya no manda directamente a Midgard
+  { const A0 = byId('aposentos'); if (A0.pc && A0.pc.apps && A0.pc.apps[0]) A0.pc.apps[0].html = A0.pc.apps[0].html.replace(/<p>Después,[^<]*<\/p>/, '<p>Después, sus aposentos: Loki pasó por su cuarto antes de huir.</p>'); }
+
+  CHAPTERS.splice(1, 0, CUARTO, TRONO, BIFROST, NY);
+  Object.entries({ sanctum: '22:50', sakaar: '23:00', tortura: '23:10', tva: '23:25', statesman: '23:40' }).forEach(([id, t]) => { const c = byId(id); if (c) c.time = t; });
+  const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+  CHAPTERS.forEach((c, i) => { c.num = ROMAN[i]; });
+  GAME.lore.forEach(l => { if ((l.ch || 0) >= 1) l.ch += 4; });
+  GAME.lore.push(
+    { ch: 1, t: 'Los aposentos de Loki', text: 'Loki creció en el palacio de Asgard como hijo de Odín y Frigga, sin saber que era un gigante de hielo adoptado. Frigga le enseñó magia e ilusiones; Thor, a perder. De niño se convirtió en serpiente para engañar a su hermano.' },
+    { ch: 2, t: 'La sala del trono', text: 'Hlidskjalf, el trono de Odín. Loki se sentó en él dos veces: una como regente, otra durante años con la cara de su padre, tras desterrar a Odín a Midgard. Bajo los murales de paz del techo, Odín había tapado las conquistas que hizo junto a Hela.' },
+    { ch: 3, t: 'El Bifrost', text: 'El puente arcoíris une Asgard con los Nueve Reinos. Heimdall, que lo ve y lo oye todo, lo abre girando su espada, Hofund, en el Observatorio. Loki lo usó una vez para destruir Jotunheim.' },
+    { ch: 4, t: 'La batalla de Nueva York', text: 'Con un cetro que le dio Thanos, Loki abrió un portal sobre Manhattan e intentó conquistar la Tierra. Perdió contra los Vengadores en el ático de la Torre, donde Hulk lo estampó contra el suelo. Thanos nunca le perdonó el fracaso.' }
+  );
+  Object.assign(PARTNER_LINES, {
+    cuarto: {
+      loki: [['Loki (móvil)', 'Mi cuarto. No toques nada. Bueno, tócalo todo, pero déjalo como estaba. La puerta: lo de madre, lo de Thor y lo que guarda mi sueño, en ese orden.']],
+      thor: [['Thor (móvil)', 'Nunca me dejó entrar en su cuarto. Si hay una nota en la pared, léela: siempre dejaba las cosas importantes a la vista para que nadie las mirara.']],
+      valkyrie: [['Valkiria (móvil)', 'El cuarto del hermano raro. Busca la nota de la pared y cuenta lo que te pida. Y no le des la espalda a la sombra de la ventana.']],
+      mobius: [['Mobius (móvil)', 'El cuarto de Loki. Ojo con el espejo: escribe al revés. Y la sombra de las manos a la espalda no muerde. Solo mira.']],
+      heimdall: [['Heimdall (móvil)', 'Te veo en sus aposentos, pequeña luz. El espejo te da el arcón, si lo lees del derecho. La nota de la pared te da la puerta.']]
+    },
+    trono: {
+      loki: [['Loki (móvil)', 'La sala del trono. Ahí fui rey, con la cara de otro. Cuenta reinos, cuenta cuervos, y apaga los braseros para ver lo que padre pintó encima.']],
+      thor: [['Thor (móvil)', 'El trono de padre. Bajo el mural hay algo que Odín escondió. Apaga los braseros. Y la placa del trono abre el cofre: es mi edad. Qué vergüenza.']],
+      valkyrie: [['Valkiria (móvil)', 'Conozco esa sala. Odín pintó encima de su pasado. Apaga el fuego y lo verás.']],
+      mobius: [['Mobius (móvil)', 'Nueve, dos y lo que hay bajo la pintura. Siempre tardas en apagar los braseros. No tardes.']],
+      heimdall: [['Heimdall (móvil)', 'Hela estuvo en esa sala. Su nombre sigue bajo la pintura. Apaga los braseros, pequeña luz.']]
+    },
+    bifrost: {
+      loki: [['Loki (móvil)', 'El Observatorio. Dile a la espada a dónde vas: Midgard. Y si ves a… él, quédate quieta. Le gusta que corran.']],
+      thor: [['Thor (móvil)', 'Escribe MIDGARD en Hofund. Y la sombra grande… no corras. Cuanto más corres, más cerca está.']],
+      valkyrie: [['Valkiria (móvil)', 'La espada de Heimdall abre el puente. Escribe Midgard. Y no huyas de la sombra: retrocede sola si te quedas quieta.']],
+      mobius: [['Mobius (móvil)', 'Aquí la gente se pone nerviosa y corre. Los que corren no salen. MIDGARD en la espada, y la tablilla abre el arcón.']],
+      heimdall: [['Heimdall (móvil)', 'Mi espada te escucha. Di MIDGARD. Y la tablilla de la pared tiene mis años de guardia: abre mi arcón.']]
+    },
+    nuevayork: {
+      loki: [['Loki (móvil)', 'Nueva York. No mires el agujero del suelo. La caja fuerte: el año de mi pequeño… error. El ascensor: la planta.']],
+      thor: [['Thor (móvil)', 'La Torre. El periódico de la pared dice el año: abre la caja. El ascensor pide la planta.']],
+      valkyrie: [['Valkiria (móvil)', 'Un ático lleno de cristales. Lo que buscas está en el periódico enmarcado y en el panel del ascensor.']],
+      mobius: [['Mobius (móvil)', 'Ah, 2012. Un clásico. Ese número abre la caja fuerte. Y el 93, el ascensor.']],
+      heimdall: [['Heimdall (móvil)', 'Desde aquí Manhattan brilla. Te veo junto al agujero. El año del periódico abre la caja; la planta, el ascensor.']]
+    }
+  });
+  byId('sanctum') && GAME.achievements.forEach(a => { if (a.id === 'cap_sanctum') a.hint = 'Sal de la biblioteca del Sanctum.'; });
+
   // ---------- líneas de cada pareja ----------
   const PL = PARTNER_LINES;
   Object.assign(PL.aposentos, {
@@ -1192,6 +1479,28 @@ Object.assign(AudioFX, {
   unlock() { this.hit(3200, 6, 0.02, 0.12); this.hit(1800, 5, 0.03, 0.1, 0.09); this.tone(900, 'triangle', 0.08, 0.03, 0.09, 700); },
   drip() { const f = rand(900, 1700); this.tone(f, 'sine', 0.09, 0.05, 0, f * 0.3); this.tone(f * 1.9, 'sine', 0.05, 0.012, 0.005, f * 0.6); this.hit(5000, 3, 0.01, 0.01, 0); }
 });
+// ---------- Sonidos grabados (Kenney, CC0) con el sintetizador como respaldo ----------
+const SFX = { buf: {}, loading: false, names: ["footstep00", "footstep01", "footstep02", "footstep03", "footstep04", "footstep05", "footstep06", "footstep07", "footstep08", "footstep09", "creak1", "creak2", "creak3", "doorOpen_1", "doorOpen_2", "doorClose_1", "doorClose_2", "doorClose_3", "doorClose_4", "bookFlip1", "bookFlip2", "bookFlip3", "bookOpen", "bookClose", "metalLatch", "metalClick", "handleSmallLeather", "cloth1", "metalPot1"],
+  load() { if (this.loading || !AudioFX.ctx) return; this.loading = true; const c = AudioFX.ctx;
+    this.names.forEach(n => fetch('sfx/' + n + '.ogg').then(r => r.ok ? r.arrayBuffer() : Promise.reject()).then(a => new Promise((ok, ko) => c.decodeAudioData(a, ok, ko))).then(b => { this.buf[n] = b; }).catch(() => {})); },
+  has(n) { return !!this.buf[n]; },
+  play(n, vol = 0.5, rate = 1, when = 0) { const b = this.buf[n], c = AudioFX.ctx; if (!b || !c) return false;
+    const s = c.createBufferSource(), g = c.createGain(); s.buffer = b; s.playbackRate.value = rate; g.gain.value = vol; s.connect(g); g.connect(AudioFX.dry); s.start(c.currentTime + when); return true; },
+  any(prefix, vol, rate, when) { const l = this.names.filter(n => n.startsWith(prefix) && this.buf[n]); return l.length ? this.play(pick(l), vol, rate, when) : false; }
+};
+(() => { const init = AudioFX.init.bind(AudioFX); AudioFX.init = function () { init(); SFX.load(); }; })();
+(() => { const A = AudioFX, syn = { step: A.step, creak: A.creak, paper: A.paper, unlock: A.unlock, slam: A.slam };
+  A.step = function (run) { const fl = (level && level.R && level.R.floor) || 'parquet', metal = /metal/i.test(fl), tile = /tile|stone|marble/i.test(fl);
+    if (!SFX.any('footstep', run ? 0.55 : 0.4, (tile ? 1.12 : metal ? 1.2 : 1) * rand(0.92, 1.08))) return syn.step.call(A, run);
+    if (metal) A.tone(rand(420, 520), 'triangle', 0.16, 0.01, 0.005, null, rand(-15, 15));
+    if (!metal && !tile && Math.random() < 0.05) SFX.any('creak', 0.12, rand(0.9, 1.1), 0.05); };
+  A.creak = function () { if (!SFX.any('creak', 0.35, rand(0.8, 1.05))) syn.creak.call(A); };
+  A.paper = function () { if (!SFX.any('bookFlip', 0.55, rand(0.95, 1.1))) syn.paper.call(A); };
+  A.unlock = function () { if (!SFX.play('metalLatch', 0.6)) return syn.unlock.call(A); SFX.play('metalClick', 0.4, 1, 0.12); };
+  A.slam = function () { syn.slam.call(A); SFX.any('doorClose', 0.7, 0.85); };
+  A.door = function () { if (!SFX.any('doorOpen', 0.6, 0.95)) A.creak(); };
+  A.pickup = function () { SFX.play('handleSmallLeather', 0.5) || SFX.play('cloth1', 0.5); };
+})();
 // ---------- Three.js ----------
 let renderer, scene, camera, clock;
 function initGL() {
@@ -1599,6 +1908,32 @@ const BUILD = {
   workbench(o, g) { const r = BUILD.desk(Object.assign({ color: 0x3a3028, w: 2.0, d: 0.8, h: 0.9 }, o), g); for (let i = 0; i < 6; i++) box(g, rand(0.05, 0.2), rand(0.03, 0.12), rand(0.05, 0.2), rand(-0.9, 0.9), 0.95, rand(-0.3, 0.3), mat(pick([0x6a6a6a, 0xc9a24a, 0x3a5a7a, 0xff3c9e]), { metalness: 0.6 })); return r; },
   piano(o, g) { const m = mat(0x0a0a0a, { roughness: 0.2, metalness: 0.2 }); box(g, 1.5, 1.2, 0.6, 0, 0.6, 0, m); box(g, 1.4, 0.04, 0.2, 0, 0.75, 0.35, mat(0xf2f2f2)); for (let i = 0; i < 20; i++) box(g, 0.025, 0.03, 0.12, -0.65 + i * 0.07, 0.78, 0.31, m); return { solid: [1.5, 0.8] }; },
   plant(o, g) { cyl(g, 0.15, 0.12, 0.3, 0, 0.15, 0, mat(0x5a3a2a)); for (let i = 0; i < 9; i++) { const l = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), mat(0x1a3a1a)); l.position.set(rand(-0.15, 0.15), 0.4 + rand(0, 0.4), rand(-0.15, 0.15)); l.scale.y = 1.6; g.add(l); } return {}; },
+  pillar(o, g) { const r = o.r || 0.3, H = o.h || 3.6, m = (o.tex && surfMat({ id: o.tex, s: 1, tint: o.tint }, 1, H, null)) || mat(o.color || 0xd4b06a, { metalness: o.metal ?? 0.6, roughness: 0.35 }), cap = mat(o.capColor || 0xc9a24a, { metalness: 0.85, roughness: 0.3 });
+    cyl(g, r, r * 1.05, H - 0.4, 0, H / 2, 0, m, 24); box(g, r * 2.6, 0.2, r * 2.6, 0, 0.1, 0, cap); box(g, r * 2.6, 0.2, r * 2.6, 0, H - 0.1, 0, cap); cyl(g, r * 1.2, r * 1.2, 0.08, 0, 0.24, 0, cap, 24); cyl(g, r * 1.2, r * 1.2, 0.08, 0, H - 0.24, 0, cap, 24);
+    return { solid: [r * 2.6, r * 2.6] }; },
+  throne(o, g) { const gold = mat(0xd4a64a, { metalness: 0.85, roughness: 0.28 }), dark = mat(0x2a1a0a, { roughness: 0.8 }), y0 = 0.54;
+    for (let i = 0; i < 3; i++) box(g, 2.8 - i * 0.55, 0.18, 2.0 - i * 0.4, 0, 0.09 + i * 0.18, 0.2 - i * 0.12, i % 2 ? dark : gold);
+    box(g, 0.95, 0.14, 0.72, 0, y0 + 0.42, -0.1, gold); box(g, 0.85, 0.06, 0.6, 0, y0 + 0.51, -0.08, mat(o.cushion || 0x6a1010, { roughness: 1 }));
+    box(g, 0.12, 0.5, 0.72, -0.52, y0 + 0.62, -0.1, gold); box(g, 0.12, 0.5, 0.72, 0.52, y0 + 0.62, -0.1, gold);
+    box(g, 1.05, 1.9, 0.16, 0, y0 + 1.35, -0.46, gold);
+    for (const [x, h, rz] of [[-0.42, 1.0, 0.18], [0, 1.4, 0], [0.42, 1.0, -0.18], [-0.78, 0.75, 0.55], [0.78, 0.75, -0.55], [-1.05, 0.5, 0.9], [1.05, 0.5, -0.9]]) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.1, h, 4), gold); c.position.set(x, y0 + 2.2 + h / 2 - 0.15, -0.46); c.rotation.z = rz; g.add(c); }
+    return { solid: [2.8, 2.0] }; },
+  swordStand(o, g) { const stone = mat(0x34343a, { roughness: 0.9 }), steel = mat(0xd8dce8, { metalness: 0.95, roughness: 0.12 }), gold = mat(0xd4a64a, { metalness: 0.85, roughness: 0.3 });
+    cyl(g, 0.38, 0.5, 0.45, 0, 0.225, 0, stone, 20); cyl(g, 0.3, 0.38, 0.12, 0, 0.51, 0, gold, 20);
+    box(g, 0.075, 1.1, 0.014, 0, 1.08, 0, steel); const tip = new THREE.Mesh(new THREE.ConeGeometry(0.053, 0.12, 4), steel); tip.rotation.x = Math.PI; tip.position.y = 0.5; tip.scale.z = 0.25; g.add(tip);
+    box(g, 0.5, 0.06, 0.09, 0, 1.66, 0, gold); cyl(g, 0.026, 0.026, 0.32, 0, 1.85, 0, mat(0x2a1a10, { roughness: 0.9 })); const pm = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 8), gold); pm.position.y = 2.04; g.add(pm);
+    const L = new THREE.PointLight(0xffc070, o.i || 0.7, 4, 2); L.position.y = 1.4; g.add(L); o._light = L; o.i = o.i || 0.7;
+    return { solid: [1.0, 1.0] }; },
+  rainbow(o, g) { const W = o.w || 1.4, D = o.d || 5; const t = canvasTex(256, 256, (c, w, h) => { const gr = c.createLinearGradient(0, 0, w, 0); ['#ff3a3a', '#ff9a2a', '#ffe23a', '#3aff6a', '#3ab0ff', '#7a3aff', '#ff3aff'].forEach((col, i, a) => gr.addColorStop(i / (a.length - 1), col)); c.fillStyle = gr; c.fillRect(0, 0, w, h); c.globalCompositeOperation = 'multiply'; for (let i = 0; i < 90; i++) { c.fillStyle = `rgba(0,0,0,${rand(0.1, 0.6)})`; c.fillRect(rand(0, w), rand(0, h), rand(1, 4), rand(20, 120)); } }, [1, D / 2]);
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: o.op || 0.8, blending: THREE.AdditiveBlending, depthWrite: false })); p.rotation.x = -Math.PI / 2; p.position.y = 0.012; g.add(p); o._rain = t;
+    const L = new THREE.PointLight(0xc0a0ff, 0.5, 5, 2); L.position.y = 0.6; g.add(L); return {}; },
+  ring(o, g) { const m = mat(o.color || 0xc9a24a, { metalness: 0.85, roughness: 0.3 }), r = new THREE.Group(), R0 = o.r || 1.2;
+    r.add(new THREE.Mesh(new THREE.TorusGeometry(R0, 0.07, 10, 64), m)); const t2 = new THREE.Mesh(new THREE.TorusGeometry(R0 * 0.82, 0.045, 8, 56), m); t2.rotation.y = Math.PI / 2; r.add(t2); const t3 = new THREE.Mesh(new THREE.TorusGeometry(R0 * 0.64, 0.035, 8, 48), m); t3.rotation.x = Math.PI / 2; r.add(t3);
+    r.position.y = o.y0 || 2.2; g.add(r); o._spin = r; o.spin = o.spin || 0.25; return {}; },
+  crater(o, g) { const R0 = o.r || 1.1; const t = canvasTex(256, 256, (c, w, h) => { const gr = c.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(0,0,0,.92)'); gr.addColorStop(0.55, 'rgba(20,18,16,.75)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h); c.strokeStyle = 'rgba(0,0,0,.85)'; c.lineWidth = 2; for (let i = 0; i < 16; i++) { let x = w / 2, y = h / 2, a = rand(0, 6.283); c.beginPath(); c.moveTo(x, y); for (let k = 0; k < 7; k++) { a += rand(-0.5, 0.5); x += Math.cos(a) * rand(8, 20); y += Math.sin(a) * rand(8, 20); c.lineTo(x, y); } c.stroke(); } });
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(R0 * 2.4, R0 * 2.4), new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, roughness: 1 })); p.rotation.x = -Math.PI / 2; p.position.y = 0.008; g.add(p);
+    const rock = mat(o.color || 0x6a6a70, { roughness: 1 }); for (let i = 0; i < 14; i++) { const a = rand(0, 6.283), d = R0 * rand(0.7, 1.15), s = rand(0.05, 0.16); const b = box(g, s, s * rand(0.4, 0.9), s * rand(0.6, 1.2), Math.cos(a) * d, s * 0.3, Math.sin(a) * d, rock); b.rotation.set(rand(0, 1), rand(0, 3), rand(0, 1)); }
+    return {}; },
   rug(o, g) { const r = new THREE.Mesh(new THREE.PlaneGeometry(o.w || 2, o.d || 1.4), mat(o.color || 0x4a1a2a, { roughness: 1 })); r.rotation.x = -Math.PI / 2; r.position.y = 0.006; g.add(r); return {}; },
   pipes(o, g) { const m = mat(0x3c4a44, { metalness: 0.7, roughness: 0.4 }); for (let i = 0; i < 3; i++) { const p = cyl(g, 0.07 + i * 0.02, 0.07 + i * 0.02, o.len || 3, 0, 0, i * 0.25, m, 10); p.rotation.z = Math.PI / 2; p.position.y = (o.y || 2.6) + i * 0.15; } return {}; },
   monitor(o, g) { // pantalla con textura dinámica
@@ -1696,7 +2031,7 @@ async function buildLevel(ci, prog) {
   if (!P.light) { P.light = new THREE.PointLight(0xffe0c0, 0.12, 4, 2); scene.add(P.light); }
   arms = null;
   level.motes = makeMotes(R.motes || 0xffffff, 120, Math.max(W, D) / 2, H); group.add(level.motes);
-  addMarks();
+  addMarks(); Shadows.setup();
   if (R.shadowFrom) { const so = level.objs.find(x => x.id === R.shadowFrom); if (so && so._light) shadowLight(so._light); }
   renderer.compile(scene, camera);
 }
@@ -2186,7 +2521,7 @@ function updateGame(dt) {
   if (C.gaze) updateGaze(dt, mag + Math.min(1, lookMoved * 0.03));
   lookMoved = 0;
   if (GAME.perk && GAME.perk.fakeGlow) for (const it of level.items) if (it.fake && !it.gone && it._mesh) { const k = 0.25 + (Math.sin(gameT * 3) + 1) * 0.3; it._mesh.traverse(n => { if (n.material && n.material.emissive) { n.material.emissive.setHex(0x3aff9a); n.material.emissiveIntensity = k; } }); }
-  updateFigures(dt); updateStalker(dt); Events.tick(dt); drawScreens(dt);
+  updateFigures(dt); updateStalker(dt); Shadows.tick(dt, mag); Events.tick(dt); drawScreens(dt);
   if (Ab.cd > 0) Ab.cd -= dt;
   // objeto apuntado
   interactTarget = (PC.open || Read.open) ? null : pickTarget();
@@ -2222,7 +2557,7 @@ function interact() {
   if (o.kind === 'item') {
     if (o.fake && GAME.perk && GAME.perk.fakeWarn && !o.warned) { o.warned = true; Dlg.start([[GAME.hero.name, GAME.perk.fakeWarn]]); unlock('perk'); return; }
     if (o.fake) { o.gone = true; o._g.visible = false; AudioFX.laugh(); FX.pulse = 1; FX.flash = 0.3; state.sanity = Math.max(5, state.sanity - 10); state.clock += (GAME.fakePenalty || 180) * D().time; unlock('fooled'); Dlg.start([pick(GAME.fakeLines || [['SISTEMA', 'No era real.']])]); return; }
-    AudioFX.chime(); FX.pulse = 0.4;
+    AudioFX.chime(); AudioFX.pickup && AudioFX.pickup(); FX.pulse = 0.4;
     Dlg.start(o.lines, () => {
       o.gone = true; o._g.visible = false; level.found++; state.collected.push(o.name);
       unlock('first_memory'); if (o.ach) unlock(o.ach); Phone.trigger('item:' + o.idx); Events.trigger('item:' + o.idx);
@@ -2308,7 +2643,7 @@ function completeChapter() {
 }
 function goChapter(i) {
   i = Math.min(CHAPTERS.length - 1, i); state.maxChapter = Math.max(state.maxChapter, i); state.chapter = i;
-  persist(); AudioFX.thud(); startChapter(i);
+  persist(); AudioFX.thud(); AudioFX.door && AudioFX.door(); startChapter(i);
 }
 function showEnding(key) {
   releaseLock(); if (PC.open) PC.close(); $('#toast').classList.remove('on'); toastT = 0; const E = ENDINGS[key]; state.screen = 'ending';
@@ -2646,6 +2981,107 @@ $('#phClose').onclick = () => Phone.toggle(false);
 $('#btnBreath').addEventListener('pointerdown', e => { e.stopPropagation(); breathHeld = true; });
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => $('#btnBreath').addEventListener(ev, () => breathHeld = false));
 
+// ---------- Sombras que te siguen: se acercan o se alejan según te muevas ----------
+const Shadows = {
+  list: [], V: new THREE.Vector3(), Q: new THREE.Quaternion(),
+  blobTex: null,
+  seg(parent, m, r1, r2, len, x, y, z) { const j = new THREE.Group(); j.position.set(x, y, z); parent.add(j); const c = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, len, 12), m); c.position.y = -len / 2; j.add(c); const b = new THREE.Mesh(new THREE.SphereGeometry(Math.max(r1, r2), 12, 8), m); j.add(b); j.userData.len = len; return j; },
+  ball(parent, m, r, x, y, z, sx = 1, sy = 1, sz = 1) { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), m); b.position.set(x, y, z); b.scale.set(sx, sy, sz); parent.add(b); return b; },
+  aim(root, j, tx, ty, tz) { // gira la articulación para que el hueso (su -Y) apunte a un punto
+    root.updateMatrixWorld(true); const wp = new THREE.Vector3().setFromMatrixPosition(j.matrixWorld), dir = new THREE.Vector3(tx, ty, tz).sub(wp).normalize();
+    const pq = new THREE.Quaternion(); j.parent.getWorldQuaternion(pq); dir.applyQuaternion(pq.invert()); j.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir); root.updateMatrixWorld(true); },
+  loki(M) { // alto y delgado, abrigo largo, cuernos curvados y las manos a la espalda
+    const g = new THREE.Group(), b = M.body;
+    for (const sx of [-1, 1]) { const leg = this.seg(g, b, 0.07, 0.05, 0.92, sx * 0.1, 0.95, 0); leg.rotation.z = sx * 0.03; this.ball(g, b, 0.06, sx * 0.1, 0.03, 0.05, 1, 0.6, 1.8); }
+    const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.34, 0.75, 18, 1, true), b); coat.position.y = 0.6; coat.scale.z = 0.8; g.add(coat);
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.15, 0.58, 16), b); torso.position.y = 1.22; torso.scale.z = 0.7; g.add(torso);
+    for (const sx of [-1, 1]) this.ball(g, b, 0.075, sx * 0.2, 1.47, 0, 1, 0.85, 1);
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.14, 10), b); neck.position.y = 1.57; g.add(neck);
+    this.ball(g, b, 0.1, 0, 1.69, 0.01, 0.92, 1.18, 1); this.ball(g, b, 0.108, 0, 1.73, -0.005, 1, 0.88, 1.05);
+    const hair = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.34, 0.07), b); hair.position.set(0, 1.56, -0.08); g.add(hair);
+    for (const sx of [-1, 1]) {
+      const pts = [[0.07, 1.76, 0.07], [0.11, 1.86, 0.05], [0.145, 1.98, -0.02], [0.16, 2.12, -0.14], [0.14, 2.25, -0.33]].map(p => new THREE.Vector3(p[0] * sx, p[1], p[2]));
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 28, 0.022, 8, false), b));
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.09, 8), b); tip.position.copy(pts[4]); tip.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), pts[4].clone().sub(pts[3]).normalize()); g.add(tip);
+      const up = this.seg(g, b, 0.052, 0.045, 0.3, sx * 0.21, 1.46, -0.01); this.aim(g, up, sx * 0.3, 1.2, -0.17);
+      const fo = this.seg(up, b, 0.045, 0.04, 0.27, 0, -0.3, 0); this.aim(g, fo, sx * 0.035, 1.03, -0.22); this.ball(fo, b, 0.045, 0, -0.28, 0);
+      const e = new THREE.Mesh(new THREE.SphereGeometry(0.011, 8, 6), M.eye); e.position.set(sx * 0.034, 1.71, 0.094); g.add(e);
+    }
+    const cape = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 1.38, 1, 4), b); cape.position.set(0, 0.84, -0.18); cape.rotation.x = 0.07; g.add(cape);
+    return { g, h: 2.15 };
+  },
+  thanos(M) { // enorme, casco con cresta, una mano abierta alzada hacia ti
+    const g = new THREE.Group(), b = M.body, au = M.gold;
+    for (const sx of [-1, 1]) { const th = this.seg(g, b, 0.15, 0.12, 0.62, sx * 0.19, 1.27, 0); th.rotation.z = sx * 0.06; this.seg(th, b, 0.12, 0.09, 0.62, 0, -0.62, 0); this.ball(g, b, 0.1, sx * 0.24, 0.05, 0.06, 1, 0.55, 1.9); }
+    const hip = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.27, 0.3, 16), b); hip.position.y = 1.28; hip.scale.z = 0.75; g.add(hip);
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.43, 0.3, 0.74, 18), b); torso.position.y = 1.72; torso.scale.z = 0.62; g.add(torso);
+    for (const sx of [-1, 1]) this.ball(g, b, 0.19, sx * 0.45, 2.02, 0, 1, 0.85, 1);
+    const trap = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.37, 0.22, 16), b); trap.position.y = 2.12; trap.scale.z = 0.7; g.add(trap);
+    this.ball(g, b, 0.15, 0, 2.3, 0.02, 1, 1.12, 1); const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.12, 0.2), b); jaw.position.set(0, 2.2, 0.05); g.add(jaw);
+    const crest = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.1, 0.34), au); crest.position.set(0, 2.47, -0.01); g.add(crest);
+    for (const sx of [-1, 1]) { const fl = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.22, 0.2), au); fl.position.set(sx * 0.155, 2.32, -0.01); fl.rotation.z = sx * 0.15; g.add(fl);
+      const e = new THREE.Mesh(new THREE.SphereGeometry(0.014, 8, 6), M.eye); e.position.set(sx * 0.05, 2.32, 0.15); g.add(e); }
+    const la = this.seg(g, b, 0.115, 0.1, 0.52, -0.48, 2.0, 0); this.aim(g, la, -0.62, 1.5, 0.02); const lf = this.seg(la, b, 0.1, 0.085, 0.46, 0, -0.52, 0); this.aim(g, lf, -0.64, 1.04, 0.1); this.ball(lf, b, 0.1, 0, -0.48, 0);
+    const ra = this.seg(g, b, 0.115, 0.1, 0.52, 0.48, 2.0, 0); this.aim(g, ra, 0.58, 1.82, 0.42); const rf = this.seg(ra, b, 0.1, 0.085, 0.46, 0, -0.52, 0); this.aim(g, rf, 0.5, 2.2, 1.05);
+    const hand = new THREE.Group(); hand.position.set(0, -0.5, 0); rf.add(hand); g.updateMatrixWorld(true); const q = new THREE.Quaternion(); rf.getWorldQuaternion(q); hand.quaternion.copy(q.invert()); hand.rotateX(-0.3);
+    box(hand, 0.2, 0.2, 0.07, 0, 0.04, 0, au); [-0.075, -0.025, 0.025, 0.075].forEach((x, i) => { const f = box(hand, 0.042, 0.16 - Math.abs(i - 1.5) * 0.02, 0.05, x, 0.22, 0, au); f.rotation.z = -x * 1.2; });
+    const th = box(hand, 0.045, 0.12, 0.05, -0.13, 0.03, 0.01, au); th.rotation.z = 0.9;
+    [0xb06aff, 0x3a8aff, 0xff3a3a, 0xff9a2a, 0x3aff6a, 0xffe23a].forEach((c, i) => { const gm = new THREE.Mesh(new THREE.SphereGeometry(i === 5 ? 0.028 : 0.016, 8, 6), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0 })); gm.position.set(i === 5 ? 0 : -0.075 + Math.min(i, 3) * 0.05, i === 5 ? 0.02 : 0.14, 0.04); hand.add(gm); M.gems.push(gm.material); });
+    return { g, h: 2.6 };
+  },
+  setup() {
+    this.list = []; const C = level.C, want = C.shadows || GAME.shadows; if (!want || !want.length) return;
+    if (!this.blobTex) this.blobTex = canvasTex(128, 128, (c, w, h) => { const gr = c.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h); });
+    want.forEach((who, i) => {
+      const M = { body: new THREE.MeshBasicMaterial({ color: 0x020203, transparent: true, opacity: 0, side: THREE.DoubleSide }), eye: new THREE.MeshBasicMaterial({ color: who === 'thanos' ? 0xb06aff : 0x3aff9a, transparent: true, opacity: 0 }), gold: new THREE.MeshStandardMaterial({ color: 0x8a6a2a, metalness: 0.9, roughness: 0.35, transparent: true, opacity: 0, emissive: 0x2a1a00 }), gems: [] };
+      const F = who === 'thanos' ? this.thanos(M) : this.loki(M), root = new THREE.Group(); root.add(F.g);
+      const sc = Math.min(1, ((level.R.h || 3) - 0.12) / F.h); F.g.scale.setScalar(sc);
+      const blob = new THREE.Mesh(new THREE.PlaneGeometry(who === 'thanos' ? 1.5 : 1.0, who === 'thanos' ? 1.5 : 1.0), new THREE.MeshBasicMaterial({ map: this.blobTex, transparent: true, opacity: 0, depthWrite: false })); blob.rotation.x = -Math.PI / 2; blob.position.y = 0.015; root.add(blob);
+      const smokeMat = new THREE.SpriteMaterial({ map: markTex(), color: 0x000000, transparent: true, opacity: 0, depthWrite: false }), smoke = [], rr = who === 'thanos' ? 0.55 : 0.35;
+      for (let k = 0; k < 16; k++) { const sp = new THREE.Sprite(smokeMat); const a = rand(0, 6.283); sp.position.set(Math.cos(a) * rr * rand(0.6, 1.2), rand(0.1, F.h * sc), Math.sin(a) * rr * rand(0.6, 1.2)); sp.scale.setScalar(rand(0.35, 0.7)); root.add(sp); smoke.push(sp); }
+      if (!this.glowTex) this.glowTex = canvasTex(128, 128, (c, w, h) => { const gr = c.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.45, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h); });
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.glowTex, color: who === 'thanos' ? 0x7a3aaa : 0x2a9a5a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); halo.position.set(0, F.h * sc * 0.55, -0.45); halo.scale.set(F.h * sc * 1.1, F.h * sc * 1.35, 1); root.add(halo); M.halo = halo.material;
+      root.visible = false; level.group.add(root);
+      const s = { who, g: root, fig: F.g, M, h: F.h * sc, blob, smokeMat, smoke, alpha: 0, want: 0, pos: new THREE.Vector3(), delay: (who === 'thanos' ? 20 : 8) + i * 2, cd: 6, stare: 0, step: 0, stuck: 0, hb: 0, fading: false, line: null };
+      this.place(s, 'far'); s.g.position.copy(s.pos); this.list.push(s);
+    });
+  },
+  place(s, mode) { // sitio libre: lejos de ti, o a unos 3 m a tu espalda
+    const R = level.R; let best = null, bk = -1e9; camera.getWorldDirection(this.V);
+    for (let i = 0; i < 120; i++) { const x = rand(-R.w / 2 + 0.6, R.w / 2 - 0.6), z = rand(-R.d / 2 + 0.6, R.d / 2 - 0.6); if (blocked(x, z)) continue;
+      const dx = x - P.pos.x, dz = z - P.pos.z, d = Math.hypot(dx, dz); if (d < 2.2) continue;
+      const k = mode === 'far' ? d : -Math.abs(d - 3) - (dx * this.V.x + dz * this.V.z) / d; if (k > bk) { bk = k; best = [x, z]; } }
+    if (best) s.pos.set(best[0], 0, best[1]);
+  },
+  tick(dt, mag) {
+    for (const o of level.objs) if (o._spin) o._spin.rotation.y += dt * o.spin;
+    for (const s of this.list) {
+      if (s.delay > 0) { s.delay -= dt; if (s.delay > 0) continue; s.g.visible = true; s.want = 1; }
+      const dx = P.pos.x - s.pos.x, dz = P.pos.z - s.pos.z, d = Math.hypot(dx, dz) || 0.001, ux = dx / d, uz = dz / d; let v = 0;
+      if (s.fading) { s.want = 0; if (s.alpha < 0.03) { s.fading = false; this.place(s, s.who === 'loki' ? 'behind' : 'far'); s.want = 1; if (s.line) { toast(s.line, 4.5); s.line = null; } } }
+      else if (s.who === 'loki') { if (d < 2.3) v = -1.8; else if (d > 3.4) v = 1.15; } // guarda la distancia: si te acercas se aleja, si te alejas te sigue
+      else { // Thanos: cuando te mueves se acerca; cuando te quedas quieta, retrocede
+        if (mag > 0.05) v = input.run ? 0.95 : 0.6; else if (d < 4.5) v = -0.45;
+        if (d < 1.8) { state.sanity -= dt * 5; FX.pulse = Math.max(FX.pulse, 0.5); if ((s.hb -= dt) < 0) { AudioFX.heartbeat(0.55); s.hb = 0.8; } }
+        if (d < 1.05) { s.fading = true; state.sanity -= 6; FX.shake = 0.5; AudioFX.thud(); s.line = pick(GAME.thanosNear || ['Un frío enorme te roza la cara. Cuando abres los ojos, ya no está.']); unlock('sombra_cerca'); }
+      }
+      if (v && !s.fading) {
+        const st = v * dt; let moved = false;
+        for (const a of [0, 0.7, -0.7, 1.4, -1.4]) { const c = Math.cos(a), sn = Math.sin(a), rx = ux * c - uz * sn, rz = ux * sn + uz * c, tx = s.pos.x + rx * st, tz = s.pos.z + rz * st; if (!blocked(tx, tz)) { s.pos.x = tx; s.pos.z = tz; moved = true; break; } }
+        if (!moved && s.who === 'loki' && v < 0) { s.stuck += dt; if (s.stuck > 0.7 && d < 2.0) { s.fading = true; s.stuck = 0; s.line = pick(GAME.lokiGone || ['Parpadeas. La sombra ya no está delante. Notas un aliento frío en la nuca.']); } } else s.stuck = 0;
+        if (s.who === 'thanos' && moved && v > 0 && (s.step -= dt) < 0) { AudioFX.tone(46, 'sine', 0.28, 0.14, 0, 32); AudioFX.hit && AudioFX.hit(140, 1, 0.12, 0.08, 0, 'lowpass'); s.step = 1.0; }
+      }
+      s.g.position.set(s.pos.x, 0, s.pos.z); s.g.rotation.y = Math.atan2(dx, dz); // siempre de cara a ti
+      s.fig.position.y = Math.sin(gameT * (s.who === 'thanos' ? 1.1 : 1.6)) * 0.01; s.fig.rotation.z = Math.sin(gameT * 0.7) * 0.012;
+      s.alpha += (s.want - s.alpha) * Math.min(1, dt * (s.fading ? 3.5 : 1.1));
+      s.M.body.opacity = 0.94 * s.alpha; s.M.eye.opacity = s.alpha; s.M.gold.opacity = s.alpha; s.M.gems.forEach(m => m.opacity = 0.9 * s.alpha); s.blob.material.opacity = 0.65 * s.alpha; s.smokeMat.opacity = 0.3 * s.alpha; if (s.M.halo) s.M.halo.opacity = 0.5 * s.alpha;
+      for (const p of s.smoke) { p.position.y += dt * 0.16; if (p.position.y > s.h) p.position.y = 0.05; }
+      s.cd -= dt; this.V.set(s.pos.x, s.h * 0.85, s.pos.z);
+      if (!s.fading && s.alpha > 0.6 && d < 6 && inView(this.V, 0.13)) { s.stare += dt; if (s.stare > 2.2 && s.cd <= 0) { s.cd = 22; s.stare = 0; toast(pick((s.who === 'thanos' ? GAME.thanosStare : GAME.lokiStare) || ['La sombra no se mueve. Tú tampoco.']), 4.5); if (s.who === 'loki') AudioFX.whisper(); else AudioFX.hum(); unlock('sombra_' + s.who); } }
+      else s.stare = Math.max(0, s.stare - dt);
+    }
+  }
+};
 // ---------- Ratón: volver a capturarlo al cerrar ventanas ----------
 function relock() {
   if (IS_TOUCH || state.screen !== 'game' || state.paused || document.pointerLockElement === gl) return;
