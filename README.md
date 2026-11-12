@@ -2,13 +2,20 @@
 
 Tres escape rooms 3D para navegador (PC, ratón + WASD):
 
-- `zaun/` — **Pesadillas de Zaun** (Arcane) · 7 capítulos · parejas: Ekko, Vi, Jayce, Silco, Mel, Caitlyn
-- `loki/` — **Dos horas para morir o vengar** (Marvel) · 6 capítulos · parejas: Loki, Thor, Valkiria, Mobius, Heimdall
-- `paris/` — **Una noche en París** (Miraculous) · 7 capítulos · personas de confianza: Adrien, Luka, Kagami, Marinette, Alya, Nino, Félix
+- `zaun/` — **Pesadillas de Zaun** (Arcane) · 10 capítulos · 5 finales · parejas: Ekko, Vi, Jayce, Silco, Mel, Caitlyn
+- `loki/` — **Dos horas para morir o vengar** (Marvel) · 10 capítulos · 5 finales · parejas: Loki, Thor, Valkiria, Mobius, Heimdall
+- `paris/` — **Una noche en París** (Miraculous) · 10 capítulos · 5 finales · personas de confianza: Adrien, Luka, Kagami, Marinette, Alya, Nino, Félix
 
-Terror psicológico, sin sustos de golpe: notas que cambian al releerlas, mensajes que tu pareja nunca envió, expedientes con tu nombre y una pregunta de fondo en cada juego.
+Terror psicológico: notas que cambian al releerlas, mensajes que tu pareja nunca envió, expedientes con tu nombre y una pregunta de fondo en cada juego.
 
 Cada carpeta es una web estática independiente (abre su `index.html`).
+
+## Versión 4 (12/11/2026)
+- Los tres juegos tienen ahora 10 capítulos y 5 finales cada uno: los de siempre, uno nuevo en la elección final, uno «bueno» si llegas con la cordura alta y otro si llegas casi sin ella.
+- Zaun: la fábrica de Shimmer, el escondite de los Desvelados y el escondite de Vi y Powder. París: la suite de Chloé, la casa del Maestro Fu y una sala del museo de noche.
+- Susto si fallas: código o contraseña incorrectos, objeto falso, quedarte sin cordura o que la sombra de Thanos te alcance.
+- Linterna: cuando se va la luz se enciende sola; L para apagarla o encenderla. Gasta batería y parpadea cuando le queda poca.
+- Llamadas en tiempo real en todos los capítulos (Vi, Ekko, Silco, Caitlyn, Chloé, el Maestro Fu, Heimdall, Mobius…).
 
 ## Versión 3.2 (12/11/2026)
 - Sonidos grabados de verdad (pack RPG de Kenney, licencia CC0, en `*/sfx/`): pasos, puertas que se abren y se cierran, bisagras, páginas, cerrojos.

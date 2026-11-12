@@ -405,7 +405,7 @@ body.breathing:after{content:"respira…";position:fixed;left:50%;top:60%;transf
   <button id="btnHelp" aria-label="Ayuda" title="Pedir ayuda a tu persona de confianza (H)">?</button>
   <button id="btnPhone" aria-label="Móvil">📱<b id="phoneBadge" style="display:none">0</b></button>
 </section>
-<div id="hintbar"><span><kbd>🖱</kbd>Mirar</span><span><kbd>E</kbd>Interactuar</span><span><kbd>🖱 dcho.</kbd>Mantén para forzar la vista</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>Caminar</span><span><kbd>⇧</kbd>Correr</span><span id="hintAbil" style="display:none"><kbd>F</kbd>Poder</span><span id="hintPhone"><kbd>Q</kbd>Móvil</span><span id="hintBreath" style="display:none"><kbd>Espacio</kbd>Respirar</span><span><kbd>Esc</kbd>Pausa</span></div>
+<div id="hintbar"><span><kbd>🖱</kbd>Mirar</span><span><kbd>E</kbd>Interactuar</span><span><kbd>🖱 dcho.</kbd>Mantén para forzar la vista</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>Caminar</span><span><kbd>⇧</kbd>Correr</span><span id="hintAbil" style="display:none"><kbd>F</kbd>Poder</span><span id="hintPhone"><kbd>Q</kbd>Móvil</span><span><kbd>L</kbd>Linterna</span><span id="hintBreath" style="display:none"><kbd>Espacio</kbd>Respirar</span><span><kbd>Esc</kbd>Pausa</span></div>
 <div id="cross"></div>
 <div id="clickHint"><kbd>🖱</kbd>Haz clic para mirar</div>
 <div id="prompt"></div>
@@ -1046,6 +1046,239 @@ CHAPTERS.forEach(c => { c.events = (c.events || []).concat([{ on: 't:28', do: 'v
     { ch: 5, t: 'El Liberty y los Couffaine', text: 'Anarka Couffaine vive con sus hijos, Luka y Juleka, en el Liberty, un barco amarrado en el Sena. Anarka habla como una pirata; Luka toca la guitarra y dice que cada persona tiene una canción; Juleka casi nunca sale bien en las fotos.' },
     { ch: 2, t: 'Félix y los sentimonstruos', text: 'Félix Graham de Vanily, primo de Adrien, se hizo pasar por él más de una vez. Los sentimonstruos son seres creados con el Miraculous del Pavo Real a partir de un amok: pueden tener cualquier forma… incluida la de una persona.' }
   );
+
+  // ================= v4 · Tres capítulos nuevos, cinco finales, sustos y linterna =================
+  const VOX = [{ on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }];
+  GAME.scareColor = '#b04aff';
+  GAME.scareText = ['🦋', '¿ERES TÚ?', 'NO MIENTAS', 'TE VEO'];
+  GAME.phone.contacts['Chloé'] = { icon: '🐝' }; GAME.phone.contacts['Maestro Fu'] = { icon: '🐢' }; GAME.phone.contacts['Adrien'] = { icon: '🐱' }; GAME.phone.contacts['Luka'] = { icon: '🎸' };
+  GAME.achievements.push(
+    { id: 'susto', icon: '😱', name: '¡Te vi!', hint: 'Llévate un susto por fallar.' },
+    { id: 'cap_hotel', icon: '🐝', name: 'Suite 1204', hint: 'Sal de la suite de Chloé.' },
+    { id: 'cap_fu', icon: '🐢', name: 'Té frío', hint: 'Sal de la casa del Maestro Fu.' },
+    { id: 'cap_louvre', icon: '🖼️', name: 'Visita nocturna', hint: 'Sal del museo.' },
+    { id: 'fin_akuma', icon: '💜', name: 'Final: Alas negras', hint: 'Rompe el colgante en el balcón.' },
+    { id: 'fin_amanecer', icon: '🌅', name: 'Final: Amanecer', hint: 'Sal por los tejados con la cabeza clara.' },
+    { id: 'fin_mariposa', icon: '🦋', name: 'Final: Mariposa', hint: 'Llega al balcón con la cordura por los suelos.' }
+  );
+
+  // ---------- IV (nuevo) · La suite de Chloé ----------
+  const HOTEL = {
+    id: 'hotel', time: '00:30', title: 'La suite de Chloé', place: 'París · Le Grand Paris, planta 12', loading: 'Subiendo en el ascensor del hotel…',
+    epigraph: '«En el Grand Paris nadie duerme solo. Siempre hay alguien detrás de la puerta preguntando si desea algo más.»',
+    room: Object.assign({}, PARIS, { w: 6.2, d: 5.2, h: 3.2, wallStyle: 'paris', wallBase: '#f0e0b0', wallTex: { id: 'beige_wall_001', s: 1.6, tint: 0xfff0c0 }, floorTex: { id: 'herringbone_parquet', s: 1.6 }, ceilTex: { id: 'white_stucco', s: 2 }, fog: 0x100c04, sky: 0xffd04a, ambient: 0.36, motes: 0xffe08a, objects: [
+      M2('Chandelier_02', [0, 3.2, 0], { id: 'main', hang: true, s: 0.7, light: { c: 0xfff0c8, i: 1.15, y: -0.7, d: 10 } }),
+      M2('Sofa_01', [-1.5, 0, 1.9], { rot: Math.PI, tint: 0xffe070 }), M2('gothic_coffee_table', [-1.5, 0, 0.9], { s: 0.9 }),
+      M2('throw_pillows_01', [-1.5, 0.45, 2.0], { solid: false }),
+      M2('old_bed_frame', [1.8, 0, -1.6], { tint: 0xfff0a0 }),
+      M2('painted_wooden_cabinet', [2.85, 0, 1.0], { rot: -Math.PI / 2, tint: 0xffd84a }),
+      M2('potted_plant_02', [-2.8, 0, -2.3]), M2('potted_plant_02', [2.8, 0, 2.3]),
+      M2('security_camera_01', [-2.95, 2.9, 2.4], { rot: Math.PI / 2 + 0.6, solid: false, kind: 'inspect', id: 'camara', name: 'Cámara del pasillo', lines: [['Tú', 'Una cámara apuntando al sofá. La lucecita roja parpadea al ritmo de mi corazón.'], ['Tú', 'Debajo, una pegatina: «Seguridad del hotel · pregunte por el señor Bourgeois». Él no está. Nunca está.']] }),
+      { type: 'frame', wall: 'n', at: [-1.2, 1.7], w: 0.9, h: 0.6, text: ['#SUITE 1204', 'Le Grand Paris', '★★★★★'], textOpt: { bg: '#1a1408', color: '#ffd84a', size: 40, big: 52 }, kind: 'inspect', id: 'placa', name: 'Placa de la suite', focusY: 1.7, dist: 1.0, lines: [['Tú', 'Suite 1204. Chloé siempre presume del número. Dice que es el mejor de todo el hotel porque es el suyo.']] },
+      { type: 'frame', wall: 'w', at: [0, 1.6, -0.8], w: 0.8, h: 0.9, text: ['#Pedido de las 00:00', 'macarons ....... 5', 'zumos ............ 2', 'el resto, a oscuras'], textOpt: { bg: '#fff8e0', color: '#3a2a08', size: 32, big: 40 }, kind: 'inspect', id: 'pedido', name: 'Pedido del servicio de habitaciones', focusY: 1.6, dist: 1.0, lines: [['Tú', 'Cinco macarons y dos zumos. A medianoche. Para dos personas. Chloé no comparte nunca.'], ['Tú', '«El resto, a oscuras». ¿Quién escribe así un pedido?']] },
+      { type: 'graffiti', wall: 'e', at: [0, 2.0, -1.4], w: 1.2, hidden: true, text: ['9', 'ABEJITA'], color: '#ffd84a', size: 110 },
+      WF('s', [1.6, 1.55], 'notaC', 'Nota de Chloé', 'Mi joyero', ['Mi joyero se abre con el número', 'de mi suite. Es el mejor número', 'de París, obviamente.', '', 'NO LO TOQUES, Sabrina.', '— C. B.'], { paper: '#fff8d0', ink: '#3a2a08' }),
+      M2('treasure_chest', [2.6, 0.85, 1.0], { rot: -Math.PI / 2, s: 0.45, solid: false, kind: 'lock', id: 'joyero', name: 'Joyero de Chloé (cuatro ruedas)', focusY: 1.0, code: '1204', codeTitle: 'Joyero · cuatro ruedas', hint: 'La placa de la pared norte: suite 1204.', lines: [['Tú', 'Dentro, en un cojín de terciopelo, hay un peine con forma de abeja. Zumba. Muy bajito.']] }),
+      { type: 'item', at: [2.6, 1.2, 0.75], shape: 'gem', color: 0xffd84a, kind: 'item', sealed: true, sealedBy: 'joyero', name: 'Peine con forma de abeja', lines: [['Eco de Chloé', 'Eso es MÍO. Me lo quitaron. Siempre me lo quitan todo.'], ['Tú', 'El zumbido se apaga cuando lo guardo. Como si alguien contuviera la respiración.']] },
+      { type: 'phone', at: [-1.3, 0.47, 0.8], kind: 'phone', name: 'Tu móvil' },
+      M2('desk_lamp_arm_01', [2.6, 0.85, 1.6], { solid: false, kind: 'light', name: 'Apagar / encender la lamparita', light: { c: 0xfff0c0, i: 0.55, y: 0.45, d: 3.5, bulb: false } }),
+      { type: 'item', at: [-1.7, 0.47, 0.95], shape: 'goggles', color: 0x1a1a1a, kind: 'item', name: 'Gafas de sol de Chloé', lines: [['Tú', 'Sus gafas de sol, de noche. Por dentro tienen pintado un ojo con pintalabios.']] },
+      { type: 'item', at: [1.8, 0.6, -1.3], shape: 'paper', color: 0xfff0f0, kind: 'item', name: 'Foto rota de Chloé y Adrien', lines: [['Tú', 'Chloé y Adrien de pequeños, en un parque. La foto está rota justo por el medio, entre los dos.'], ['Tú', 'Por detrás: «Adrichou siempre me elige a mí». La letra tiembla.']] },
+      { type: 'item', at: [0.4, 0.03, 1.4], shape: 'ring', color: 0xd4a64a, kind: 'item', name: 'Tarjeta de la habitación', lines: [['Tú', 'Una tarjeta dorada con mi nombre. «Huésped permanente».']] },
+      { type: 'item', at: [-2.8, 0.6, -2.0], shape: 'egg', color: 0xffc0d0, kind: 'item', name: 'Macaron mordido', lines: [['Tú', 'Rosa, de frambuesa. Tiene la marca de unos dientes. Encajan con los míos.']] },
+      { type: 'item', at: [-0.6, 0.03, -1.8], shape: 'ring', color: 0xd4a64a, kind: 'item', fake: true, name: 'Tarjeta de la habitación' },
+      { type: 'rug', at: [-1.5, 0, 1.2], w: 2.4, d: 1.8, color: 0x8a6a1a },
+      { type: 'door', wall: 's', at: [-0.6, 0], code: true, kind: 'door', name: 'Puerta de la suite', focusY: 1.1, color: 0xf0e0b0, tex: 'dark_wooden_planks', tint: 0xffe8b0 }
+    ] }),
+    start: { at: [0, 0.6], yaw: 0 },
+    objective: 'Averigua quién más dormía en la suite',
+    code: '529', codeTitle: 'Puerta de la suite · tres ruedas', codeObjective: 'Abre la puerta con el pedido de medianoche',
+    codeHelp: 'El pedido del servicio de habitaciones: macarons, zumos y lo que está escrito a oscuras en la pared este (apaga la lamparita).',
+    codeFamily: 'Chloé: «Cinco macarons, dos zumos y mi número de la suerte, que es el nueve, obviamente. 529».',
+    intro: [['Tú', 'Las 00:30. La suite de Chloé Bourgeois. Todo es amarillo, dorado y caro.'], ['Tú', 'Hay dos copas en la mesa. Dos cepillos de dientes. Dos de todo. Chloé siempre ha dormido sola.']],
+    allFound: [['Tú', 'Las gafas, la foto, la tarjeta, el macaron. La puerta se abre con el pedido de medianoche: lo que falta está a oscuras.']],
+    locked: 'Aún no. La suite guarda algo más.',
+    events: [
+      { on: 't:15', do: 'presence', text: 'Llaman a la puerta. «¿Servicio de habitaciones?» No has pedido nada.' },
+      { on: 'item:1', do: 'whisper', text: 'ADRICHOU' },
+      { on: 't:50', do: 'blackout', dur: 4 },
+      { on: 't:75', do: 'say', lines: [['{p} (móvil)', 'Lin, ¿estás en el hotel? No te acerques al joyero. Esa abeja no es la de Chloé.']] },
+      { on: 'lock:joyero', do: 'heartbeat', n: 5 },
+      { on: 'found', do: 'flicker', dur: 2 }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Chloé', delay: 3, msgs: ['¿QUIÉN TE HA DEJADO ENTRAR EN MI SUITE?', 'Bueno. Ya que estás. ¿Has visto a la otra?', 'Lleva días durmiendo en mi cama. Tiene tu cara.'] },
+      { on: 'item:2', call: 'Chloé', label: 'Llamada · Chloé', lines: [['Chloé', 'Escúchame bien, porque solo lo digo una vez. No me fío de ti.'], ['Chloé', 'Pero me fío menos de ella. Sal de mi suite antes de que vuelva del baño. Lleva mucho rato en el baño.']], missed: [{ msgs: ['¿ME HAS COLGADO?', 'A MÍ nadie me cuelga.'] }] }
+    ],
+    exitName: 'Pasillo del hotel'
+  };
+
+  // ---------- VI (nuevo) · La casa del Maestro Fu ----------
+  const FU = {
+    id: 'fu', time: '01:40', title: 'La casa del Maestro Fu', place: 'París · Rue Gustave Eiffel, centro de masajes', loading: 'Quitándote los zapatos en la entrada…',
+    epigraph: '«El gramófono guarda la caja. La caja guarda a los kwamis. ¿Y a la caja quién la guarda?»',
+    room: Object.assign({}, PARIS, { w: 5.6, d: 5.0, h: 2.8, wallStyle: 'paris', wallBase: '#c8b090', wallTex: { id: 'plastered_wall_02', s: 1.4, tint: 0xd8c098 }, floorTex: { id: 'dark_wooden_planks', s: 1.4, tint: 0x8a6a4a }, ceilTex: { id: 'dark_wooden_planks', s: 1.6, tint: 0x5a4030 }, fog: 0x0a0806, sky: 0x4aff8a, ambient: 0.34, motes: 0xc8ffd0, objects: [
+      M2('Lantern_01', [0, 2.8, 0], { id: 'main', hang: true, s: 1.2, light: { c: 0xffe0b0, i: 1.0, y: -0.5, d: 8, flick: true } }),
+      M2('WoodenTable_03', [0, 0, -0.2], { s: [0.9, 0.55, 0.9] }),
+      M2('throw_pillows_01', [-0.9, 0, -0.2], { solid: false }), M2('throw_pillows_01', [0.9, 0, -0.2], { solid: false }),
+      M2('wicker_basket_01', [-2.4, 0, 1.9]), M2('potted_plant_02', [2.4, 0, 2.0]), M2('potted_plant_02', [-2.4, 0, -2.1]),
+      M2('painted_wooden_shelves', [2.6, 0, -1.0], { rot: -Math.PI / 2, tint: 0xb07a4a }),
+      M2('vintage_radio_transceiver', [2.3, 1.0, -1.4], { rot: -Math.PI / 2, s: 0.8, solid: false, kind: 'lock', id: 'gramofono', name: 'Gramófono (cuatro ruedas)', focusY: 1.1, code: '0186', codeTitle: 'Gramófono · cuatro ruedas', hint: 'El retrato del Maestro Fu: cumple 186 años. 0186.', lines: [['Tú', 'El gramófono se abre como una caja de música. Dentro hay una caja hexagonal… vacía. Todos los huecos vacíos.']] }),
+      { type: 'item', at: [2.1, 1.05, -1.4], shape: 'box', color: 0x2a1a0a, kind: 'item', sealed: true, sealedBy: 'gramofono', name: 'Caja de los Miraculous (vacía)', lines: [['Tú', 'Diecinueve huecos. Ninguna joya. Solo un papelito en el centro: «Has llegado tarde. Ya los tiene ella».'], ['Tú', '¿Ella? ¿Quién es ella?']] },
+      { type: 'frame', wall: 'n', at: [-1.2, 1.6], w: 0.7, h: 0.9, text: ['#Wang Fu', 'Guardián', 'cumple 186 años', 'y sigue sirviendo el té'], textOpt: { bg: '#2a1a0a', color: '#f0d8a0', size: 30, big: 40 }, kind: 'inspect', id: 'retrato', name: 'Retrato del Maestro Fu', focusY: 1.6, dist: 1.0, lines: [['Tú', 'El Maestro Fu, con su camisa hawaiana. Ciento ochenta y seis años. En la foto sonríe. Ahora no sonríe.']] },
+      { type: 'frame', wall: 'e', at: [0, 1.6, 1.2], w: 0.8, h: 0.9, text: ['#La caja', 'prodigios mayores .. 7', 'guardianes vivos .... 1', 'el último, en la pared'], textOpt: { bg: '#f0e0c0', color: '#3a2a10', size: 30, big: 40 }, kind: 'inspect', id: 'pergamino', name: 'Pergamino de la caja', focusY: 1.6, dist: 1.0, lines: [['Tú', 'Siete prodigios mayores. Un guardián vivo. El último número está en la pared, pero tiene que estar a oscuras para verlo.']] },
+      { type: 'graffiti', wall: 'w', at: [0, 1.9, 0.6], w: 1.2, hidden: true, text: ['4', 'LO ESTÁ OLVIDANDO TODO'], color: '#4aff8a', size: 80 },
+      F([0.25, 0.43, -0.35], 'notaFu', 'Nota en la mesa', 'Para Marinette', ['Si lees esto, ya no me acuerdo de ti.', 'El gramófono se abre con mi edad.', 'La puerta, con el pergamino.', '', 'El té está frío. Lo siento.', '— W. F.'], { paper: '#f0e0c0', ink: '#3a2a10' }),
+      { type: 'phone', at: [-0.3, 0.43, -0.05], kind: 'phone', name: 'Tu móvil' },
+      M2('desk_lamp_arm_01', [2.4, 1.0, -0.4], { rot: -Math.PI / 2, solid: false, kind: 'light', name: 'Apagar / encender la lámpara', light: { c: 0xffe0b0, i: 0.5, y: 0.45, d: 3.5, bulb: false } }),
+      { type: 'item', at: [0.2, 0.43, -0.05], shape: 'cup', color: 0xe8e0d0, kind: 'item', name: 'Taza de té frío', lines: [['Tú', 'Té verde, frío, con una capa de polvo encima. Lleva aquí meses. Pero hay dos tazas, y la otra está caliente.']] },
+      { type: 'item', at: [-0.9, 0.2, -0.2], shape: 'box', color: 0xb03a3a, kind: 'item', name: 'Cojín de meditación', lines: [['Tú', 'Está hundido, como si alguien siguiera sentado encima. No hay nadie.']] },
+      { type: 'item', at: [-2.4, 0.4, 1.9], shape: 'egg', color: 0x4aff8a, kind: 'item', name: 'Galleta de Wayzz', lines: [['Tú', 'Una galleta pequeña, del tamaño de un kwami. Alguien le ha dado un mordisquito diminuto.'], ['Eco de Wayzz', 'Maestro… ¿maestro? ¿Por qué ya no me ve?']] },
+      { type: 'item', at: [2.4, 1.35, -0.7], shape: 'book', color: 0x6a3a1a, kind: 'item', name: 'Libro de los guardianes', lines: [['Tú', 'Un libro escrito en un idioma que no conozco. En la última página, en francés y con mi letra: «Lin no debe tener nunca un Miraculous».']] },
+      { type: 'item', at: [1.0, 0.03, 1.8], shape: 'cup', color: 0xe8e0d0, kind: 'item', fake: true, name: 'Taza de té frío' },
+      { type: 'rug', at: [0, 0, -0.2], w: 2.6, d: 1.8, color: 0x7a2a1a },
+      { type: 'door', wall: 's', at: [-1.0, 0], code: true, kind: 'door', name: 'Puerta corredera', focusY: 1.1, color: 0xc8b090, tex: 'dark_wooden_planks', tint: 0xb08a5a }
+    ] }),
+    start: { at: [0, 1.4], yaw: 0 },
+    objective: 'Descubre qué le pasó al Maestro Fu',
+    code: '714', codeTitle: 'Puerta corredera · tres ruedas', codeObjective: 'Abre la puerta con el pergamino de la caja',
+    codeHelp: 'El pergamino de la pared este: prodigios mayores, guardianes vivos… y el último número, pintado en la pared oeste. Apaga la lámpara.',
+    codeFamily: 'El Maestro Fu lo escribió: siete prodigios, un guardián, y un cuatro en la pared. 714.',
+    intro: [['Tú', 'Las 01:40. Un centro de masajes cerrado. Huele a incienso, a té y a viejo.'], ['Tú', 'Aquí vivía el guardián de los Miraculous. Dicen que lo olvidó todo. Por cómo está la casa, parece que la casa también.']],
+    allFound: [['Tú', 'La taza, el cojín, la galleta, el libro. La puerta: el pergamino de la caja. Lo último solo se ve sin luz.']],
+    locked: 'Aún no. La casa del guardián guarda algo más.',
+    events: [
+      { on: 't:15', do: 'presence', text: 'El gramófono suelta una nota sola. Una. Larga. Luego se calla.' },
+      { on: 'look:retrato', do: 'whisper', text: '¿QUIÉN ERES?' },
+      { on: 't:55', do: 'say', lines: [['{p} (móvil)', 'Lin, ¿por qué estás en casa del Maestro Fu? Nadie sabe dónde vive. Ni yo.']] },
+      { on: 'lock:gramofono', do: 'heartbeat', n: 6 },
+      { on: 'lock:gramofono', do: 'drain', dmg: 6, delay: 2 },
+      { on: 'found', do: 'blackout', dur: 3 }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Número oculto', delay: 3, msgs: ['Qué casa tan bonita.', 'Fui yo quien vació la caja. ¿No te acuerdas? 🦋'] },
+      { on: 'item:1', call: 'Maestro Fu', label: 'Llamada · Maestro Fu', lines: [['Maestro Fu', '¿Hola? ¿Quién es? Perdone, se me olvidan las cosas… ¿Es usted la chica de la panadería?'], ['Maestro Fu', 'No, no… usted es la otra. La que no tiene que tener nunca un Miraculous. Váyase, por favor. Váyase.']], missed: [{ msgs: ['¿Hola?', '¿Hola? Creo que me he equivocado de número.'] }] }
+    ],
+    exitName: 'Puerta corredera'
+  };
+
+  // ---------- VIII (nuevo) · El museo de noche ----------
+  const PORTRAIT = (wall, at, title, line, x = {}) => Object.assign({ type: 'frame', wall, at, w: 0.75, h: 0.95, text: ['#' + title, line], textOpt: { bg: '#2a1a10', color: '#e8d0a0', size: 30, big: 38 } }, x);
+  const LOUVRE = {
+    id: 'louvre', time: '02:40', title: 'El museo de noche', place: 'París · Una sala cerrada del Louvre', loading: 'Esquivando a los vigilantes…',
+    epigraph: '«En los museos, de noche, los retratos descansan. Por eso no les gusta que les mires.»',
+    room: Object.assign({}, PARIS, { w: 7.0, d: 6.0, h: 4.0, wallStyle: 'paris', wallBase: '#8a3a2a', wallTex: { id: 'plastered_wall_02', s: 2, tint: 0xa04a3a }, floorTex: { id: 'herringbone_parquet', s: 2, tint: 0xc8a888 }, ceilTex: { id: 'white_stucco', s: 2.4, tint: 0xd8d0c0 }, fog: 0x0c0608, fogDensity: 0.045, sky: 0x8a4aff, ambient: 0.3, motes: 0xffd8b0, objects: [
+      M2('Chandelier_01', [0, 4.0, 0], { id: 'main', hang: true, s: 0.8, light: { c: 0xfff0d8, i: 1.15, y: -0.9, d: 12 } }),
+      { type: 'pillar', at: [-2.0, 0, -1.6], r: 0.26, h: 4.0, color: 0xe8e0d0, metal: 0.1 }, { type: 'pillar', at: [2.0, 0, -1.6], r: 0.26, h: 4.0, color: 0xe8e0d0, metal: 0.1 },
+      { type: 'pillar', at: [-2.0, 0, 1.6], r: 0.26, h: 4.0, color: 0xe8e0d0, metal: 0.1 }, { type: 'pillar', at: [2.0, 0, 1.6], r: 0.26, h: 4.0, color: 0xe8e0d0, metal: 0.1 },
+      PORTRAIT('n', [-2.4, 2.0], 'Dama con abanico', 'te mira'), PORTRAIT('n', [-0.8, 2.0], 'Niño con cometa', 'te mira'), PORTRAIT('n', [0.8, 2.0], 'Caballero de negro', 'te mira'), PORTRAIT('n', [2.4, 2.0], 'Dama del velo', 'te mira'),
+      PORTRAIT('e', [0, 2.0, -1.2], 'Retrato sin cara', 'de espaldas'), PORTRAIT('e', [0, 2.0, 1.2], 'Retrato sin cara', 'de espaldas'),
+      PORTRAIT('w', [0, 2.0, -1.8], 'Mujer de espaldas', 'de espaldas'), PORTRAIT('w', [0, 2.0, 0], 'Hombre de espaldas', 'de espaldas'), PORTRAIT('w', [0, 2.0, 1.8], 'Niña de espaldas', 'de espaldas'),
+      PORTRAIT('s', [2.4, 2.0], 'Lin', 'sala 2312', { kind: 'inspect', id: 'retratoLin', name: 'Retrato con tu nombre', focusY: 2.0, dist: 1.1, lines: [['Tú', 'Un retrato con mi nombre en la cartela. El lienzo está vacío: solo un fondo oscuro y un marco dorado.'], ['Tú', 'Cuando me acerco, el fondo se parece cada vez más a mi cuarto.']] }),
+      { type: 'frame', wall: 's', at: [0.8, 1.5], w: 0.7, h: 0.5, text: ['#Sala de retratos', 'los que te miran', 'los que no', 'y el que se esconde'], textOpt: { bg: '#f0e8d8', color: '#2a1a10', size: 30, big: 38 }, kind: 'inspect', id: 'cartela', name: 'Cartela de la sala', focusY: 1.5, dist: 1.0, lines: [['Tú', '«Los que te miran, los que no, y el que se esconde». Cuento retratos. El último número no está en ningún cuadro.']] },
+      { type: 'graffiti', wall: 'e', at: [0, 1.1, 0], w: 1.0, hidden: true, text: ['1', 'EL QUE SE ESCONDE'], color: '#b04aff', size: 90 },
+      M2('security_camera_01', [3.3, 2.6, -2.75], { rot: -2.3, solid: false, kind: 'inspect', id: 'camaraL', name: 'Cámara de seguridad', lines: [['Tú', 'La lucecita está apagada. Pero la cámara se gira, despacio, siguiéndome.']] }),
+      { type: 'frame', wall: 'w', at: [0, 1.2, -0.9], w: 0.6, h: 0.4, text: ['#Louvre', 'abierto al público', 'desde 1793'], textOpt: { bg: '#d8c8a8', color: '#2a1a10', size: 30, big: 38 }, kind: 'inspect', id: 'placaL', name: 'Placa del museo', focusY: 1.2, dist: 0.9, lines: [['Tú', 'Abierto al público desde 1793. La vitrina del centro tiene un candado de cuatro ruedas. Seguro que es eso.']] },
+      M2('treasure_chest', [0, 0, 0], { s: 0.75, kind: 'lock', id: 'vitrina', name: 'Relicario del centro (cuatro ruedas)', focusY: 1.0, code: '1793', codeTitle: 'Relicario · cuatro ruedas', hint: 'La placa del museo, en la pared oeste: desde 1793.', lines: [['Tú', 'La caja de cristal y oro se abre con un suspiro. Dentro, sobre un cojín morado, hay un broche con forma de mariposa.']] }),
+      { type: 'item', at: [0, 0.55, 0.3], shape: 'gem', color: 0x8a4aff, kind: 'item', sealed: true, sealedBy: 'vitrina', name: 'Broche de mariposa', lines: [['Tú', 'Frío. Late. Cuando lo cojo, todos los retratos de la sala parpadean a la vez.'], ['Eco desconocido', 'Por fin. Llevaba toda la noche esperándote, mi pequeña.']] },
+      { type: 'phone', at: [-3.2, 0.8, 2.6], kind: 'phone', name: 'Tu móvil' },
+      M2('wooden_crate_02', [-3.1, 0, 2.6], { rot: 0.3 }), M2('bar_chair_round_01', [3.0, 0, 2.6]), M2('desk_lamp_arm_01', [-3.1, 0.62, 2.4], { solid: false, kind: 'light', name: 'Apagar / encender el flexo del vigilante', light: { c: 0xffe0b0, i: 0.5, y: 0.45, d: 3.5, bulb: false } }),
+      { type: 'item', at: [3.0, 0.75, 2.4], shape: 'ring', color: 0xc0c0c0, kind: 'item', name: 'Llavero del vigilante', lines: [['Tú', 'Un llavero con doce llaves. En la etiqueta pone «Sala de retratos · NO ENTRAR SOLO».']] },
+      { type: 'item', at: [-2.0, 0.03, 0.6], shape: 'paper', color: 0xf0e8d8, kind: 'item', name: 'Entrada del museo', lines: [['Tú', 'Una entrada con fecha de hoy. Hora de entrada: 23:12. Hora de salida: en blanco.']] },
+      { type: 'item', at: [1.4, 0.03, -2.4], shape: 'knife', color: 0x8a6a4a, kind: 'item', name: 'Pincel manchado', lines: [['Tú', 'Un pincel con la pintura todavía fresca. Negra. Huele a pintura y a mi champú.']] },
+      { type: 'item', at: [-3.1, 0.65, 2.6], shape: 'gem', color: 0xd4a64a, kind: 'item', name: 'Trozo de marco dorado', lines: [['Tú', 'Un trozo de marco. Encaja con el del retrato que lleva mi nombre. Alguien intentó romperlo para salir.']] },
+      { type: 'item', at: [2.0, 0.03, 0.4], shape: 'paper', color: 0xf0e8d8, kind: 'item', fake: true, name: 'Entrada del museo' },
+      { type: 'door', wall: 's', at: [-1.6, 0], code: true, kind: 'door', name: 'Puerta de servicio', focusY: 1.1, color: 0x8a3a2a, tex: 'dark_wooden_planks', tint: 0xa06a4a }
+    ] }),
+    start: { at: [0, 2.2], yaw: 0 },
+    objective: 'Busca tu retrato en el museo',
+    code: '451', codeTitle: 'Puerta de servicio · tres ruedas', codeObjective: 'Abre la puerta con la cartela: los que te miran, los que no y el que se esconde',
+    codeHelp: 'Cuenta los retratos que te miran (pared norte) y los que están de espaldas (paredes este y oeste). El último número aparece a oscuras.',
+    codeFamily: 'Cuatro te miran. Cinco de espaldas. Y uno escondido. 451.',
+    intro: [['Tú', 'Las 02:40. Una sala del Louvre, cerrada al público. Paredes rojas, columnas, retratos.'], ['Tú', 'Unos me miran. Otros están pintados de espaldas. Y uno tiene mi nombre.']],
+    allFound: [['Tú', 'El llavero, la entrada, el pincel, el marco. La puerta: la cartela. Cuento retratos… y apago la luz para el último.']],
+    locked: 'Aún no. El museo no ha terminado contigo.',
+    events: [
+      { on: 't:15', do: 'presence', text: 'Uno de los retratos de espaldas ya no está de espaldas. Cuando vuelves a mirar, sí.' },
+      { on: 'look:retratoLin', do: 'whisper', text: 'QUÉDATE' },
+      { on: 't:45', do: 'blackout', dur: 4 },
+      { on: 't:70', do: 'say', lines: [['{p} (móvil)', 'Lin, han dado el aviso en la tele: alguien ha entrado en el Louvre. Dicen que es una chica. Dicen que eres tú.']] },
+      { on: 'lock:vitrina', do: 'heartbeat', n: 7 },
+      { on: 'lock:vitrina', do: 'drain', dmg: 8, delay: 3 },
+      { on: 'found', do: 'flicker', dur: 2 }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Alya', delay: 3, msgs: ['¿¿estás en el LOUVRE??', 'tengo la alerta del Ladyblog sonando sin parar', 'no mires los cuadros a los ojos. lo digo en serio'] },
+      { on: 'item:2', call: 'Adrien', label: 'Llamada · Adrien', lines: [['Adrien', 'Lin, escúchame. Mi padre guardaba un broche igual en su despacho. Nunca me dejó tocarlo.'], ['Adrien', 'Si está en esa vitrina, no lo cojas. Y si ya lo has cogido… no lo sueltes delante de nadie.']], missed: [{ msgs: ['Lin, llámame.', 'Es por el broche.'] }] }
+    ],
+    exitName: 'Puerta de servicio'
+  };
+
+  // orden final: buhardilla, boulangerie, atelier, HOTEL, colegio, FU, estudio, LOUVRE, liberty, forma
+  CHAPTERS.splice(CHAPTERS.findIndex(c => c.id === 'atelier') + 1, 0, HOTEL);
+  CHAPTERS.splice(CHAPTERS.findIndex(c => c.id === 'colegio') + 1, 0, FU);
+  CHAPTERS.splice(CHAPTERS.findIndex(c => c.id === 'estudio') + 1, 0, LOUVRE);
+  { const R = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']; CHAPTERS.forEach((c, i) => c.num = R[i]); }
+  { const m = { 3: 4, 4: 6, 5: 8, 6: 9 }; GAME.lore.forEach(l => { if (m[l.ch] !== undefined) l.ch = m[l.ch]; }); }
+  GAME.lore.push(
+    { ch: 3, t: 'Chloé Bourgeois', text: 'Hija del alcalde de París, vive en la suite del hotel Le Grand Paris, que es de su familia. Es caprichosa y cruel con casi todo el mundo, menos con Adrien, su amigo de la infancia. Fue Queen Bee con el Miraculous de la Abeja, cuyo prodigio es un peine.' },
+    { ch: 5, t: 'El Maestro Fu', text: 'Wang Fu fue el guardián de la caja de los Miraculous, escondida dentro de un gramófono en su centro de masajes. Su kwami es Wayzz, la tortuga. Al renunciar a ser guardián perdió la memoria de todo lo relacionado con los Miraculous.' },
+    { ch: 7, t: 'El broche de la mariposa', text: 'El Miraculous de la Mariposa permite crear akumas: mariposas que se meten en un objeto de una persona con un sentimiento fuerte y la convierten en villana. Durante mucho tiempo lo usó Hawk Moth, que resultó ser Gabriel Agreste, el padre de Adrien.' }
+  );
+
+  // ---------- cinco finales ----------
+  FINAL_CHOICE.text = 'Dos Marinette en el balcón, idénticas, tendiéndote la mano. Detrás, la ventana abierta a los tejados. En tu cuello, el colgante pesa más que nunca. ¿Qué haces?';
+  FINAL_CHOICE.options = [{ t: 'Por los tejados, sola', end: 'tejado' }, { t: 'De la mano de Marinette', end: 'balcon' }, { t: 'Arrancarte el colgante y romperlo contra el suelo', end: 'akuma' }];
+  Object.assign(ENDINGS, {
+    akuma: { title: 'Final: Alas negras', fx: 'boom', text: ['Te arrancas el colgante y lo estrellas contra las baldosas del balcón. Se rompe con un ruido de cristal.', 'De dentro sale una mariposa negra. Pequeña. Paciente. Se posa en tu mano y se vuelve morada.', 'Una voz amable te dice al oído: «Has sido muy valiente, Lin. Ahora te daré el poder de que nadie te olvide nunca».', 'A la mañana siguiente, todo París recuerda tu nombre. Lo gritan por las calles. Corren.'] },
+    amanecer: { title: 'Final: Amanecer', text: ['Sales por los tejados con la cabeza clara. Cada salto pesa menos que el anterior.', 'Al llegar al último tejado, el cielo se pone naranja. Debajo, la panadería abre sus puertas y huele a pan.', '{p} te está esperando abajo. Te abraza tan fuerte que te duele. «Te he buscado toda la noche.»', 'Detrás de ti, en el balcón, solo hay una Marinette. Te dice adiós con la mano. Esta vez la reconoces.'] },
+    mariposa: { title: 'Final: Mariposa', fx: 'boom', text: ['Ya no sabes cuál de las dos es Marinette. Ni cuál eres tú.', 'Das un paso. Luego otro. El balcón se hace largo, como un pasillo de museo lleno de retratos.', 'Te paras delante del último marco. Dentro estás tú, sonriendo. Fuera ya no queda nadie.', 'En el Louvre, al amanecer, un vigilante se fija en un cuadro nuevo. Una chica de pie en un balcón. Tiene una mariposa en la mano.'] }
+  });
+  GAME.endingFor = k => (state.sanity < 25 ? 'mariposa' : (k === 'tejado' && state.sanity >= 70) ? 'amanecer' : k);
+
+  // ---------- llamadas en tiempo real en los capítulos que no tenían ----------
+  {
+    const CALLS = {
+      buhardilla: { on: 'item:2', call: 'Marinette', label: 'Llamada · Marinette', lines: [['Marinette', '¿Lin? Estoy abajo, en la panadería. ¿Por qué tienes la luz encendida si me dijiste que dormías?'], ['Marinette', 'Espera… ¿quién está hablando ahora mismo en tu cuarto?']], missed: [{ msgs: ['lin?', 'contesta 🌸'] }] },
+      boulangerie: { on: 'item:2', call: 'Marinette', label: 'Llamada · Marinette', lines: [['Marinette', 'No toques el horno. Mi padre lo deja encendido por la noche, pero a esta hora debería estar apagado.'], ['Marinette', 'Si está caliente… es que hay alguien horneando.']], missed: [{ msgs: ['no toques el horno', 'por favor'] }] },
+      atelier: { on: 'item:2', call: 'Adrien', label: 'Llamada · Adrien', lines: [['Adrien', '¿Estás en el despacho de mi padre? Nadie entra ahí. Ni yo.'], ['Adrien', 'Si el retrato de mi madre te mira, no es una impresión tuya. A mí también me miraba.']], missed: [{ msgs: ['Lin, llámame.'] }] },
+      colegio: { on: 'item:2', call: 'Alya', label: 'Llamada · Alya', lines: [['Alya', '¡Lin! Estoy viendo la cámara del Ladyblog en el colegio. Hay alguien en el aula de Mme. Bustier.'], ['Alya', 'Eres tú. Pero en la imagen estás sentada en tu pupitre, quieta. Y a la vez te veo andando. ¿Cómo puede ser?']], missed: [{ msgs: ['CONTESTA', 'te estoy viendo por la cámara'] }] },
+      estudio: { on: 'item:2', call: 'Alya', label: 'Llamada · Alya', lines: [['Alya', 'La Torre Luxus está cerrada desde hace años. ¿Qué haces ahí arriba?'], ['Alya', 'No mires por la ventana. Desde ahí se ve tu buhardilla. Y hay alguien asomado.']], missed: [{ msgs: ['lin, ¿estás bien?'] }] },
+      liberty: { on: 'item:2', call: 'Luka', label: 'Llamada · Luka', lines: [['Luka', 'Hola, Lin. Estoy de gira, pero algo me ha dicho que te llamara.'], ['Luka', 'Toca la canción del barco con calma. Tres, silencio, uno, dos. Y luego vete. No te quedes a escuchar quién la canta contigo.']], missed: [{ msgs: ['Te dejo la canción en el buzón de voz. 🎸'] }] },
+      forma: { on: 'item:1', call: 'Marinette', label: 'Llamada · Marinette', lines: [['Marinette', 'Lin, estoy en mi cuarto. En el balcón hay alguien con mi cara.'], ['Marinette', 'Si llegas con la cabeza clara, sabrás cuál soy yo. Respira antes de elegir. Por favor.']], missed: [{ msgs: ['no la cojas de la mano', 'no soy yo'] }] }
+    };
+    CHAPTERS.forEach(c => { const k = CALLS[c.id]; if (k && !(c.phone || []).some(p => p.call)) (c.phone = c.phone || []).push(k); });
+  }
+
+  Object.assign(PARTNER_LINES, {
+    hotel: {
+      adrien: [['Adrien (móvil)', 'Chloé siempre presume del número de su suite. El joyero será eso. La puerta, el pedido de medianoche.']],
+      luka: [['Luka (móvil)', 'Escucha la sala: cinco cosas dulces, dos que se beben… y algo que solo suena a oscuras.']],
+      kagami: [['Kagami (móvil)', 'Lee el pedido. Cuenta. Apaga la luz para la última cifra. No pierdas tiempo con la abeja.']],
+      marinette: [['Marinette (móvil)', 'Uf, Chloé… su joyero tiene el número de su suite, seguro. Y para salir, mira el pedido del servicio de habitaciones.']],
+      alya: [['Alya (móvil)', 'Dato del Ladyblog: la suite de Chloé es la 1204. Y el pedido de medianoche tiene la clave de la puerta.']],
+      nino: [['Nino (móvil)', 'Tía, macarons y zumos. Cuéntalos. Y apaga la lamparita, que hay algo pintado en la pared.']],
+      felix: [['Félix (móvil)', 'Chloé es predecible: el número de su suite para el joyero. Lo demás, en el pedido y en la pared a oscuras.']]
+    },
+    fu: {
+      adrien: [['Adrien (móvil)', 'El retrato dice su edad. El gramófono se abre con eso. Para salir, el pergamino.']],
+      luka: [['Luka (móvil)', 'Siete, uno… y una nota que solo suena cuando apagas la luz. La casa tiene su propia canción.']],
+      kagami: [['Kagami (móvil)', 'Su edad, en cuatro cifras, para el gramófono. El pergamino para la puerta. La última cifra está oculta.']],
+      marinette: [['Marinette (móvil)', 'El Maestro Fu… El gramófono se abre con su edad, 186. Y la puerta con el pergamino de la caja.']],
+      alya: [['Alya (móvil)', 'No tengo nada de esa casa en el Ladyblog. Pero lee el pergamino: hay números. Y la pared oeste esconde uno.']],
+      nino: [['Nino (móvil)', 'Mira el retrato del viejo, tiene su edad. Y el pergamino de la pared. Y apaga la lámpara, hermana.']],
+      felix: [['Félix (móvil)', 'Los guardianes son sentimentales. Su edad para el gramófono. El pergamino para la puerta.']]
+    },
+    louvre: {
+      adrien: [['Adrien (móvil)', 'Cuenta los retratos: los que te miran están en la pared norte. Los de espaldas, a los lados. La vitrina, el año de la placa.']],
+      luka: [['Luka (móvil)', 'Cuatro caras que te miran, cinco que no. Y una que se esconde y solo se ve en la oscuridad.']],
+      kagami: [['Kagami (móvil)', 'Cuenta sin mirarles a los ojos. Norte, este y oeste. La vitrina: la placa del museo.']],
+      marinette: [['Marinette (móvil)', 'El Louvre de noche, qué miedo… Cuenta los retratos y apaga la luz para el último número. La vitrina, el año de la placa.']],
+      alya: [['Alya (móvil)', 'Dato: el Louvre abrió al público en 1793. Eso para la vitrina. La puerta: cuenta retratos.']],
+      nino: [['Nino (móvil)', 'Cuatro te miran, cinco de espaldas. Y uno escondido, a oscuras. ¡Sal de ahí ya!']],
+      felix: [['Félix (móvil)', 'Los que te miran, los que no y el que se esconde. Es una cuenta, no una adivinanza. La vitrina: 1793.']]
+    }
+  });
 
   // ---------- líneas de cada amigo ----------
   const PL = PARTNER_LINES;
@@ -2174,7 +2407,7 @@ const Events = {
     if (state.screen !== 'game') return;
     const d = ev.do;
     if (d === 'flicker') { level.flick = ev.dur || 1.6; AudioFX.burst(120, 2, 0.4, 0.15); }
-    else if (d === 'blackout') { setLights(false); AudioFX.thud(); setTimeout(() => { if (level && !level.dark) setLights(true); }, (ev.dur || 3) * 1000); }
+    else if (d === 'blackout') { setLights(false); AudioFX.thud(); Torch.blackout = true; setTimeout(() => { Torch.blackout = false; if (level && !level.dark) setLights(true); }, (ev.dur || 3) * 1000); }
     else if (d === 'knock') { AudioFX.knock(ev.n || 3); }
     else if (d === 'slam') { AudioFX.creak ? AudioFX.creak() : AudioFX.knock(1); }
     else if (d === 'voice') { Voice.say(ev.v); }
@@ -2361,7 +2594,7 @@ function interact() {
   const o = interactTarget, C = level.C;
   if (o.kind === 'item') {
     if (o.fake && GAME.perk && GAME.perk.fakeWarn && !o.warned) { o.warned = true; Dlg.start([[GAME.hero.name, GAME.perk.fakeWarn]]); unlock('perk'); return; }
-    if (o.fake) { o.gone = true; o._g.visible = false; AudioFX.laugh(); FX.pulse = 1; FX.flash = 0.3; state.sanity = Math.max(5, state.sanity - 10); state.clock += (GAME.fakePenalty || 180) * D().time; unlock('fooled'); Dlg.start([pick(GAME.fakeLines || [['SISTEMA', 'No era real.']])]); return; }
+    if (o.fake) { o.gone = true; o._g.visible = false; AudioFX.laugh(); FX.pulse = 1; FX.flash = 0.3; state.sanity = Math.max(5, state.sanity - 10); state.clock += (GAME.fakePenalty || 180) * D().time; unlock('fooled'); Scare.go('fake'); Dlg.start([pick(GAME.fakeLines || [['SISTEMA', 'No era real.']])]); return; }
     AudioFX.chime(); AudioFX.pickup && AudioFX.pickup(); FX.pulse = 0.4;
     Dlg.start(o.lines, () => {
       o.gone = true; o._g.visible = false; level.found++; state.collected.push(o.name);
@@ -2438,6 +2671,7 @@ function doInspect(o) {
     Dlg.start(o.lines || [], () => { Phone.trigger('look:' + o.id); Events.trigger('look:' + o.id); if (o.ach) unlock(o.ach); const all = level.objs.filter(x => x.kind === 'inspect').length; if (level.inspected.size >= all && all > 1) unlock('curious'); }, { pos: focusOf(o), dist: o.dist || 0.6 });
 }
 function die() {
+  if (state.screen === 'game' && !die._w) { die._w = 1; Scare.go('death', true); setTimeout(() => { die._w = 2; die(); die._w = 0; }, 900); return; } if (die._w === 1) return;
   releaseLock(); if (PC.open) PC.close(); Read.close(); state.screen = 'dead'; AudioFX.thud(); state.deaths++; unlock('death'); if (state.deaths >= 5) unlock('death5'); persist();
   $('#deadTitle').textContent = GAME.deathTitle; $('#deadLine').textContent = fmt(pick(GAME.deathLines)); show('dead');
 }
@@ -2451,6 +2685,7 @@ function goChapter(i) {
   persist(); AudioFX.thud(); AudioFX.door && AudioFX.door(); startChapter(i);
 }
 function showEnding(key) {
+  if (GAME.endingFor && key !== GAME.timeoutEnding) key = GAME.endingFor(key) || key;
   releaseLock(); if (PC.open) PC.close(); $('#toast').classList.remove('on'); toastT = 0; const E = ENDINGS[key]; state.screen = 'ending';
   if (!state.endings.includes(key)) state.endings.push(key); unlock('fin_' + key); if (state.endings.length >= Object.keys(ENDINGS).length) unlock('all_endings');
   persist();
@@ -2868,7 +3103,7 @@ const Shadows = {
       else { // Thanos: cuando te mueves se acerca; cuando te quedas quieta, retrocede
         if (mag > 0.05) v = input.run ? 0.95 : 0.6; else if (d < 4.5) v = -0.45;
         if (d < 1.8) { state.sanity -= dt * 5; FX.pulse = Math.max(FX.pulse, 0.5); if ((s.hb -= dt) < 0) { AudioFX.heartbeat(0.55); s.hb = 0.8; } }
-        if (d < 1.05) { s.fading = true; state.sanity -= 6; FX.shake = 0.5; AudioFX.thud(); s.line = pick(GAME.thanosNear || ['Un frío enorme te roza la cara. Cuando abres los ojos, ya no está.']); unlock('sombra_cerca'); }
+        if (d < 1.05) { s.fading = true; state.sanity -= 6; FX.shake = 0.5; AudioFX.thud(); s.line = pick(GAME.thanosNear || ['Un frío enorme te roza la cara. Cuando abres los ojos, ya no está.']); unlock('sombra_cerca'); Scare.go('thanos'); }
       }
       if (v && !s.fading) {
         const st = v * dt; let moved = false;
@@ -2887,6 +3122,70 @@ const Shadows = {
     }
   }
 };
+// ---------- Jumpscare al fallar (código, contraseña, objeto falso, cordura a cero) ----------
+const Scare = {
+  el: null, cv: null, t: 0, cd: 0, kind: '',
+  build() {
+    if (this.el) return; const st = document.createElement('style');
+    st.textContent = '#scare{position:fixed;inset:0;z-index:90;display:none;pointer-events:none;background:#000;align-items:center;justify-content:center;overflow:hidden}#scare.on{display:flex}#scare canvas{width:min(100vw,140vh);height:auto;image-rendering:auto;filter:contrast(1.3)}#scare .scl{position:absolute;inset:0;background:radial-gradient(circle,transparent 30%,#000 85%)}#torchHud{position:fixed;left:18px;top:96px;z-index:30;font:600 12px/1.2 system-ui,sans-serif;color:#ffe9b0;letter-spacing:.04em;text-shadow:0 0 6px #000;display:none;opacity:.9}#torchHud.on{display:block}#torchHud b{display:inline-block;width:60px;height:6px;border:1px solid #ffe9b0;margin-left:6px;vertical-align:middle;position:relative}#torchHud i{position:absolute;left:0;top:0;bottom:0;background:#ffe9b0}#torchHud.low i{background:#ff5a3a}';
+    document.head.appendChild(st);
+    this.el = document.createElement('div'); this.el.id = 'scare'; this.cv = document.createElement('canvas'); this.cv.width = 1280; this.cv.height = 720;
+    this.el.appendChild(this.cv); const v = document.createElement('div'); v.className = 'scl'; this.el.appendChild(v); document.body.appendChild(this.el);
+  },
+  draw(k) { // cara deformada pintada a mano: cada vez distinta
+    const c = this.cv.getContext('2d'), W = 1280, H = 720, col = GAME.scareColor || '#ff2a2a';
+    c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
+    for (let i = 0; i < 2600; i++) { c.fillStyle = `rgba(255,255,255,${Math.random() * 0.06})`; c.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
+    const cx = W / 2 + rand(-30, 30), cy = H / 2 + 30, fw = rand(250, 300), fh = rand(330, 380);
+    const g = c.createRadialGradient(cx, cy - 40, 30, cx, cy, fh); g.addColorStop(0, '#d8d2c8'); g.addColorStop(0.55, '#8a8278'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.beginPath(); for (let a = 0; a <= 6.3; a += 0.15) { const r = 1 + rand(-0.05, 0.05); c.lineTo(cx + Math.cos(a) * fw * r, cy + Math.sin(a) * fh * r * (a > 0 && a < 3.14 ? 1.08 : 1)); } c.fill();
+    for (const sx of [-1, 1]) { // ojos hundidos con brillo del color del juego
+      const ex = cx + sx * fw * 0.38, ey = cy - fh * 0.18; c.fillStyle = '#000'; c.beginPath(); c.ellipse(ex, ey, fw * 0.2, fh * 0.15, sx * 0.25, 0, 7); c.fill();
+      const eg = c.createRadialGradient(ex, ey, 1, ex, ey, 26); eg.addColorStop(0, '#fff'); eg.addColorStop(0.25, col); eg.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = eg; c.beginPath(); c.arc(ex + rand(-6, 6), ey + rand(-4, 4), 26, 0, 7); c.fill();
+      c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 3; for (let i = 0; i < 4; i++) { c.beginPath(); c.moveTo(ex + rand(-40, 40), ey + fh * 0.12); c.lineTo(ex + rand(-60, 60), ey + fh * rand(0.3, 0.55)); c.stroke(); }
+    }
+    c.fillStyle = '#050000'; c.beginPath(); const my = cy + fh * 0.42, mw = fw * rand(0.55, 0.75); c.moveTo(cx - mw, my - 10);
+    for (let x = -mw; x <= mw; x += 18) c.lineTo(cx + x, my + (Math.abs(x) < mw * 0.9 ? rand(30, 120) : 0)); for (let x = mw; x >= -mw; x -= 18) c.lineTo(cx + x, my - rand(0, 26)); c.fill();
+    c.fillStyle = '#e8e0d0'; for (let x = -mw + 12; x < mw - 12; x += 22) { c.beginPath(); c.moveTo(cx + x, my - 6); c.lineTo(cx + x + 9, my + rand(16, 34)); c.lineTo(cx + x + 18, my - 6); c.fill(); }
+    c.globalCompositeOperation = 'screen'; c.fillStyle = col; c.globalAlpha = 0.18; c.fillRect(0, 0, W, H); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+    for (let y = 0; y < H; y += 3) { c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(0, y, W, 1); }
+    if (GAME.scareText) { c.font = '700 54px serif'; c.textAlign = 'center'; c.fillStyle = col; c.fillText(pick(GAME.scareText), W / 2, H - 40); }
+  },
+  go(kind, force) {
+    if (!state.settings || state.settings.scares === false) return; const now = performance.now(); if (!force && now < this.cd) return;
+    this.build(); this.kind = kind; this.cd = now + (force ? 2000 : 9000); this.t = force ? 1.0 : 0.75; this.draw(kind);
+    clearInterval(this._iv); let last = now; this._iv = setInterval(() => { const n = performance.now(); this.tick((n - last) / 1000); last = n; if (this.t <= 0) clearInterval(this._iv); }, 30);
+    this.el.classList.add('on'); try { AudioFX.stinger(); AudioFX.hit && (AudioFX.hit(900, 0.6, 0.6, 0.6, 0, 'bandpass', 0.003), AudioFX.hit(140, 1, 0.5, 0.7, 0, 'lowpass', 0.003));
+    AudioFX.tone(880, 'sawtooth', 0.6, 0.12, 0, 220, 0, 3000); } catch (e) {} FX.shake = 1.4; FX.hurt = 1; unlock('susto');
+  },
+  tick(dt) {
+    if (!this.el || this.t <= 0) return;
+    this.t -= dt; const k = Math.max(0, this.t);
+    this.cv.style.transform = `scale(${(1.35 - k * 0.5).toFixed(3)}) translate(${rand(-12, 12)}px,${rand(-10, 10)}px) rotate(${rand(-2, 2)}deg)`;
+    this.el.style.opacity = k < 0.15 ? (k / 0.15).toFixed(2) : 1; if (this.t <= 0) this.el.classList.remove('on');
+  }
+};
+// ---------- Linterna: se enciende sola cuando se va la luz; L para apagarla o encenderla; la batería se gasta ----------
+const Torch = {
+  on: true, bat: 100, blackout: false, hud: null, told: false,
+  ensure() { if (!TORCH) { TORCH = new THREE.SpotLight(0xfff0d8, 0, 9, 0.42, 0.6, 1.6); TORCH.position.set(0.12, -0.12, 0); camera.add(TORCH); TORCH.target.position.set(0, -0.15, -1); camera.add(TORCH.target); if (!camera.parent) scene.add(camera); } },
+  toggle() { if (!this.need()) return; this.on = !this.on; AudioFX.click && AudioFX.click(); SFX.play && SFX.play('metalClick', 0.35, 1.4); },
+  need() { return !!level && (level.dark || this.blackout); },
+  tick(dt) {
+    if (!this.hud) { Scare.build(); this.hud = document.createElement('div'); this.hud.id = 'torchHud'; this.hud.innerHTML = '🔦 Linterna <b><i></i></b> <small>L</small>'; document.body.appendChild(this.hud); }
+    const need = state.screen === 'game' && this.need(); this.hud.classList.toggle('on', need);
+    if (!need) { this.bat = Math.min(100, this.bat + dt * 6); if (TORCH && !level.dark) TORCH.intensity = 0; return; }
+    if (!this.told) { this.told = true; toast('Se ha ido la luz: la linterna se enciende sola. Pulsa L para apagarla o encenderla. Gasta batería.', 5); }
+    this.ensure(); if (this.on) this.bat = Math.max(0, this.bat - dt * 1.1);
+    const base = GAME.torch !== undefined ? GAME.torch : 0.9, low = this.bat < 20;
+    const fl = low ? (Math.random() < 0.12 ? 0.1 : 0.75 + Math.random() * 0.25) : 1;
+    TORCH.intensity = this.on && this.bat > 0 ? base * fl * (0.55 + this.bat / 220) : 0;
+    this.hud.querySelector('i').style.width = this.bat.toFixed(0) + '%'; this.hud.classList.toggle('low', low);
+  }
+};
+addEventListener('keydown', e => { if (e.code === 'KeyL' && state.screen === 'game' && !Keypad.open && !PC.open && !Read.open) { e.preventDefault(); Torch.toggle(); } });
+(() => { const ks = Keypad.submit.bind(Keypad); Keypad.submit = function () { const bad = this.val !== this.code; const r = ks(); if (bad) Scare.go('code'); return r; };
+  const ps = PC.submit.bind(PC); PC.submit = function () { const was = level.pcUnlocked; const r = ps(); if (!was && !level.pcUnlocked && this.tries >= 2) Scare.go('pc'); return r; }; })();
 // ---------- Ratón: volver a capturarlo al cerrar ventanas ----------
 function relock() {
   if (IS_TOUCH || state.screen !== 'game' || state.paused || document.pointerLockElement === gl) return;
@@ -2901,6 +3200,7 @@ function loop() {
   const dt = Math.min(clock.getDelta(), 0.05); T += dt;
   if (state.screen === 'game') {
     if (!state.paused) Phone.update(dt);
+    if (!state.paused) Torch.tick(dt);
     if (!state.paused && !Dlg.active && !Keypad.open && !Call.ringing) { if (zoomHeld) { level.zoomT = (level.zoomT || 0) + dt; if (level.zoomT > 6) unlock('zoom'); } updateGame(dt); }
     else { AudioFX.update(dt, { sanity: state.sanity, playing: true, musicBox: 0.3 }); Amb.update(dt, true); if (!state.paused) { tickClock(dt); drawScreens(dt); } }
     updateFPCamera(dt);

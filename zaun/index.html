@@ -405,7 +405,7 @@ body.breathing:after{content:"respira…";position:fixed;left:50%;top:60%;transf
   <button id="btnHelp" aria-label="Ayuda" title="Pedir ayuda a tu pareja (H)">?</button>
   <button id="btnPhone" aria-label="Móvil">📱<b id="phoneBadge" style="display:none">0</b></button>
 </section>
-<div id="hintbar"><span><kbd>🖱</kbd>Mirar</span><span><kbd>E</kbd>Interactuar</span><span><kbd>🖱 dcho.</kbd>Mantén para forzar la vista</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>Caminar</span><span><kbd>⇧</kbd>Correr</span><span id="hintAbil" style="display:none"><kbd>F</kbd>Poder</span><span id="hintPhone"><kbd>Q</kbd>Móvil</span><span id="hintBreath" style="display:none"><kbd>Espacio</kbd>Respirar</span><span><kbd>Esc</kbd>Pausa</span></div>
+<div id="hintbar"><span><kbd>🖱</kbd>Mirar</span><span><kbd>E</kbd>Interactuar</span><span><kbd>🖱 dcho.</kbd>Mantén para forzar la vista</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>Caminar</span><span><kbd>⇧</kbd>Correr</span><span id="hintAbil" style="display:none"><kbd>F</kbd>Poder</span><span id="hintPhone"><kbd>Q</kbd>Móvil</span><span><kbd>L</kbd>Linterna</span><span id="hintBreath" style="display:none"><kbd>Espacio</kbd>Respirar</span><span><kbd>Esc</kbd>Pausa</span></div>
 <div id="cross"></div>
 <div id="clickHint"><kbd>🖱</kbd>Haz clic para mirar</div>
 <div id="prompt"></div>
@@ -1003,6 +1003,230 @@ CHAPTERS.forEach(c => { c.events = (c.events || []).concat([{ on: 't:28', do: 'v
   );
 
   // ---------- líneas de cada pareja ----------
+  // ================= v4 · Tres capítulos nuevos, cinco finales, sustos y linterna =================
+  const M2 = (m, at, x = {}) => Object.assign({ type: 'model', m, at }, x);
+  const VOX = [{ on: 't:28', do: 'voice' }, { on: 'dark', do: 'voice', delay: 3 }];
+  GAME.scareColor = '#ff3c9e';
+  GAME.scareText = ['¡TE PILLÉ!', 'JA JA JA', '¿JUGAMOS?', 'GAFE'];
+  GAME.achievements.push(
+    { id: 'susto', icon: '😱', name: '¡Pillada!', hint: 'Llévate un susto por fallar.' },
+    { id: 'cap_fabrica', icon: '🧪', name: 'Lote rosa', hint: 'Sal de la fábrica de Shimmer.' },
+    { id: 'cap_arbol', icon: '🌳', name: 'Desvelada', hint: 'Sal del escondite de los Desvelados.' },
+    { id: 'cap_guarida', icon: '🧸', name: 'Hermanas', hint: 'Sal del escondite de Vi y Powder.' },
+    { id: 'fin_pelea', icon: '💥', name: 'Final: La mesa rota', hint: 'Vuelca la mesa de la merienda.' },
+    { id: 'fin_despertar', icon: '🌅', name: 'Final: Despertar', hint: 'Sube la escalera con la cabeza clara.' },
+    { id: 'fin_shimmer', icon: '💗', name: 'Final: Rosa para siempre', hint: 'Llega al final con la cordura por los suelos.' }
+  );
+
+  // ---------- V (nuevo) · La fábrica de Shimmer ----------
+  const brl = (x, z, pink, extra = {}) => M2('Barrel_01', [x, 0, z], Object.assign({ tint: pink ? 0xff5ab0 : 0x7a3aaa, emit: pink ? 0x5a0a3a : 0x2a0a4a, emitI: 0.45 }, extra));
+  const FABRICA = {
+    id: 'fabrica', time: '03:20', title: 'La fábrica de Shimmer', place: 'Zaun · Las fosas químicas', loading: 'Bajando a las fosas…',
+    epigraph: '«En las fosas, el aire es rosa. La gente que trabaja aquí no tose: se ríe. Y nadie sabe por qué.»',
+    room: Object.assign({}, ZAUN_ROOM, { w: 6.4, d: 5.6, h: 3.6, wallTex: { id: 'factory_brick', s: 2, tint: 0x8a6a7a }, floorTex: { id: 'concrete_floor_worn_001', s: 2 }, ceilTex: { id: 'rusty_metal_02', s: 1.6, tint: 0x5a4a50 }, fog: 0x14060e, fogDensity: 0.05, sky: 0xff5ab0, ambient: 0.34, motes: 0xff7ac8, shadowFrom: 'main', floor: 'metal', objects: [
+      M2('hanging_industrial_lamp', [0, 3.6, 0], { id: 'main', hang: true, light: { c: 0xffc0e0, i: 1.15, y: -0.6, d: 10 } }),
+      brl(-2.7, -2.3, true), brl(-2.0, -2.4, true), brl(-2.7, -1.6, true),
+      brl(2.7, -2.3, false), brl(2.0, -2.4, false), brl(2.7, -1.6, false), brl(2.7, -0.9, false),
+      { type: 'frame', wall: 'w', at: [0, 1.7, 0.4], w: 0.9, h: 0.5, text: ['#Barriles rosas', 'Lote puro · primera cifra'], textOpt: { bg: '#1a0a14', color: '#ff7ac8', size: 32, big: 40 }, kind: 'inspect', id: 'rosas', name: 'Cartel de los barriles rosas', focusY: 1.7, dist: 1.0, lines: [['Tú', '«Lote puro». La primera cifra es cuántos barriles rosas hay en esta sala. Los cuento con el dedo, como una niña.']] },
+      { type: 'frame', wall: 'e', at: [0, 1.7, 0.4], w: 0.9, h: 0.5, text: ['#Barriles morados', 'Lote cortado · segunda cifra'], textOpt: { bg: '#120a1a', color: '#b98aff', size: 32, big: 40 }, kind: 'inspect', id: 'morados', name: 'Cartel de los barriles morados', focusY: 1.7, dist: 1.0, lines: [['Tú', '«Lote cortado». La segunda cifra: los barriles morados. Uno está medio escondido detrás de otro.']] },
+      { type: 'graffiti', wall: 'n', at: [0, 2.2], w: 1.6, hidden: true, text: ['7', 'NO RESPIRES'], color: '#ff3c9e', size: 110 },
+      M2('metal_office_desk', [0.3, 0, -2.3], { tint: 0x6a5a60 }),
+      M2('chemistry_set', [0.0, 0.75, -2.35], { s: 0.9, solid: false }),
+      M2('desk_lamp_arm_01', [0.85, 0.75, -2.45], { solid: false, kind: 'light', name: 'Apagar / encender el flexo del capataz', light: { c: 0xffd0e8, i: 0.6, y: 0.45, d: 3.5, bulb: false } }),
+      F([0.5, 0.762, -2.15], 'receta', 'Receta en la mesa', 'Orden de mezcla', ['Primero, los rosas.', 'Después, los morados.', 'Y al final, la cifra que solo', 'se ve cuando apagas la luz.', '', '— S.'], { paper: '#1a0a14', ink: '#ff9ad0', glow: 0.3 }),
+      WF('s', [2.2, 1.6], 'ficha', 'Ficha del capataz', 'Taquilla', ['Mi taquilla se abre', 'con el número de la paciente', 'que nunca se despierta,', 'escrito dos veces.']),
+      M2('metal_tool_chest', [-2.8, 0, 1.5], { rot: Math.PI / 2, s: 0.8, kind: 'lock', id: 'taquilla2', name: 'Taquilla del capataz (cuatro cifras)', focusY: 0.8, code: '1717', codeTitle: 'Taquilla · cuatro válvulas', hint: 'La paciente que nunca se despierta es la 17. Escrita dos veces: 1717.', lines: [['Tú', 'Dentro hay un vial que brilla tanto que me deja manchas en los ojos.']] }),
+      { type: 'item', at: [-2.45, 0.55, 1.5], shape: 'jar', color: 0xff3c9e, kind: 'item', sealed: true, sealedBy: 'taquilla2', name: 'Vial de Shimmer puro', lines: [['Tú', 'Rosa, espeso, caliente. Se mueve solo dentro del cristal.'], ['Jinx', 'No te lo bebas, cielito. Todavía no. Guárdalo para la merienda.']] },
+      M2('tool_cart', [1.9, 0, 1.6], { rot: -0.4 }), M2('old_military_crate', [-0.9, 0, 2.2], { s: 0.9 }), M2('steel_frame_shelves_02', [-2.95, 0, -0.2], { rot: Math.PI / 2, s: 0.9 }),
+      { type: 'phone', at: [0.95, 0.76, -2.15], kind: 'phone', name: 'Comunicador' },
+      { type: 'item', at: [1.9, 0.9, 1.6], shape: 'goggles', color: 0x6a8a7a, kind: 'item', name: 'Máscara de gas rota', lines: [['Tú', 'El filtro está lleno de polvo rosa. Quien la llevaba respiró igual.']] },
+      { type: 'item', at: [-2.95, 1.05, -0.2], shape: 'glove', color: 0x8a6a4a, kind: 'item', name: 'Guante de obrero', lines: [['Tú', 'Un guante con los dedos quemados. Dentro, un nombre bordado: «Vander». No puede ser.']] },
+      { type: 'item', at: [-0.9, 0.85, 2.2], shape: 'paper', color: 0xe8d8e0, kind: 'item', name: 'Etiqueta de lote', lines: [['Tú', '«Lote 17. Destino: la merienda». Mi número. Otra vez.']] },
+      { type: 'item', at: [0.6, 0.04, 0.9], shape: 'ring', color: 0xd4a64a, kind: 'item', name: 'Insignia de Silco', lines: [['Eco de Silco', 'Las fosas no matan a nadie, niña. Solo les enseñan a respirar otra cosa.']] },
+      { type: 'item', at: [-2.95, 1.45, -0.6], shape: 'glove', color: 0x8a6a4a, kind: 'item', fake: true, name: 'Guante de obrero' },
+      { type: 'door', wall: 's', at: [-1.0, 0], code: true, kind: 'door', name: 'Montacargas de la fábrica', focusY: 1.2, tex: 'rusty_metal_04' }
+    ] }),
+    start: { at: [0, 1.6], yaw: 0, pitch: 0.42 },
+    objective: 'Busca el rastro de Silco en la fábrica',
+    code: '347', codeTitle: 'Montacargas · tres válvulas', codeObjective: 'Abre el montacargas: rosas, morados y lo que se ve a oscuras',
+    codeHelp: 'Cuenta los barriles rosas y los morados. La tercera cifra está pintada en la pared del fondo: apaga el flexo para verla.',
+    codeFamily: 'Jinx: «Tres rosas, cuatro morados y el siete que pinté yo. 347, cielito».',
+    intro: [['Tú', 'Las 03:20. Una fábrica. El aire es rosa y huele a caramelo quemado.'], ['Tú', 'Hay barriles que brillan. Algunos laten. Juraría que laten.'], ['SISTEMA', 'Si se va la luz, la linterna se enciende sola (L para apagarla). Si fallas un código… mejor no falles.']],
+    allFound: [['Jinx', '¡Todo! Ahora el montacargas: rosas, morados y el número que da miedo. Apaga la luz, cielito.']],
+    locked: 'Silco dejó más cosas aquí abajo.',
+    events: [
+      { on: 't:20', do: 'presence', text: 'Uno de los barriles rosas ha cambiado de sitio. No lo has visto moverse.' },
+      { on: 'item:1', do: 'whisper', text: 'VANDER' },
+      { on: 't:50', do: 'blackout', dur: 4 },
+      { on: 't:80', do: 'say', lines: [['{p} (comunicador)', 'Respira por la nariz. Despacio. Si te ríes sin motivo, sal de ahí.']] },
+      { on: 'lock:taquilla2', do: 'heartbeat', n: 5 },
+      { on: 'found', do: 'flicker', dur: 2 }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Ekko', delay: 3, msgs: ['Estás en las fosas. No te quites nada de la cara.', 'Si oyes risas, no son tuyas. O sí. Da igual: sigue.'] },
+      { on: 'item:2', call: 'Vi', label: 'Llamada · Vi', lines: [['Vi', '¿Me oyes? Lote 17… Esa etiqueta la he visto antes. En la clínica. En una cama.'], ['Vi', 'Sal de ahí y no bebas nada. Te lo pido yo.']], missed: [{ msgs: ['Contesta.', 'Por favor.'] }] }
+    ],
+    exitName: 'Montacargas'
+  };
+
+  // ---------- VII (nuevo) · El escondite de los Desvelados ----------
+  const ARBOL = {
+    id: 'arbol', time: '03:55', title: 'El escondite de los Desvelados', place: 'Zaun · El árbol de Ekko', loading: 'Trepando por el árbol que brilla…',
+    epigraph: '«Ekko plantó un árbol donde no crece nada. Todos los que no tenían casa subieron a vivir dentro.»',
+    room: Object.assign({}, ZAUN_ROOM, { w: 6.0, d: 6.0, h: 3.8, wallTex: { id: 'medieval_wood', s: 1.8, tint: 0x8a9a7a }, floorTex: { id: 'old_wooden_floor_02', s: 1.6 }, ceilTex: { id: 'dark_wooden_planks', s: 2, tint: 0x5a6a4a }, fog: 0x061008, fogDensity: 0.04, sky: 0x6aff9a, ambient: 0.4, motes: 0x9affc0, shadowFrom: 'main', floor: 'parquet', objects: [
+      M2('caged_hanging_light', [0, 3.8, 0], { id: 'main', hang: true, light: { c: 0xd0ffd8, i: 1.1, y: -0.6, d: 10 } }),
+      M2('WoodenTable_01', [0, 0, -0.4], { s: 1.0 }), M2('dining_chair_02', [-0.8, 0, -0.4], { rot: Math.PI / 2 }), M2('dining_chair_02', [0.8, 0, -0.4], { rot: -Math.PI / 2 }),
+      M2('sofa_02', [-1.6, 0, 2.4], { rot: Math.PI, tint: 0x4a6a4a }), M2('wooden_crate_02', [2.5, 0, 2.4], {}), M2('wooden_crate_02', [2.5, 0.6, 2.4], { rot: 0.4, s: 0.8 }),
+      M2('dartboard', [-2.97, 1.6, -1.4], { rot: Math.PI / 2, solid: false }),
+      M2('standing_chalkboard_01', [2.2, 0, -2.3], { rot: -0.5, kind: 'inspect', id: 'pizarra', name: 'Pizarra de planes', focusY: 1.2, dist: 1.2, lines: [['Tú', '«Guardias de esta noche: Ekko 2 · Scar 0 · LA NUEVA 8». La nueva soy yo. Ocho guardias. No recuerdo ninguna.']] }),
+      M2('vintage_radio_transceiver', [0.35, 0.78, -0.55], { s: 0.9, solid: false, kind: 'inspect', id: 'radio', name: 'Radio de los Desvelados', lines: [['Voz en la radio', '… la caja de Ekko se abre con la hora del reloj parado … repito … la hora del reloj parado …'], ['Tú', 'La voz es la mía. Grabada. No me acuerdo de grabarla.']] }),
+      M2('alarm_clock_01', [-0.3, 0.78, -0.3], { solid: false, kind: 'inspect', id: 'reloj', name: 'Reloj parado', lines: [['Tú', 'Un despertador con las agujas quietas: 11:04. Tiene la tapa abierta, como si alguien hubiera querido arreglar el tiempo.']] }),
+      M2('vintage_oil_lamp', [2.5, 1.2, 2.4], { s: 0.8, solid: false, kind: 'light', name: 'Apagar / encender el farol', light: { c: 0xffd8a0, i: 0.6, y: 0.35, d: 4, flick: true, bulb: false } }),
+      M2('treasure_chest', [-2.5, 0, -2.5], { rot: Math.PI / 4, s: 0.8, kind: 'lock', id: 'cajaEkko', name: 'Caja de Ekko (cuatro cifras)', focusY: 0.55, code: '1104', codeTitle: 'Caja de Ekko · cuatro válvulas', hint: 'El reloj parado de la mesa marca las 11:04.', lines: [['Tú', 'Dentro, envuelto en un trapo, hay un engranaje dorado que vibra. Y una nota: «Para cuando quieras volver atrás».']] }),
+      { type: 'item', at: [-2.2, 0.5, -2.2], shape: 'spring', color: 0xd4a64a, kind: 'item', sealed: true, sealedBy: 'cajaEkko', name: 'Engranaje que retrocede', lines: [['Eco de Ekko', 'Funciona solo una vez. Úsalo bien. Yo lo gasté en ella y no sirvió de nada.']] },
+      { type: 'graffiti', wall: 'n', at: [0, 2.3], w: 2.0, text: ['DESVELADOS'], color: '#6aff9a', size: 110 },
+      { type: 'graffiti', wall: 'e', at: [0, 2.0, 0.3], w: 1.8, hidden: true, text: ['ELLA YA', 'ESTUVO AQUÍ'], color: '#ff3c9e', size: 90 },
+      { type: 'window', wall: 'w', at: [0, 2.0, 1.0], w: 1.2, h: 1.0, view: 'zaun', frame: 0x3a2a1a, light: 0x6aff9a },
+      { type: 'phone', at: [0.4, 0.78, -0.2], kind: 'phone', name: 'Comunicador' },
+      { type: 'item', at: [-1.6, 0.5, 2.3], shape: 'goggles', color: 0x6aff9a, kind: 'item', name: 'Máscara de los Desvelados', lines: [['Tú', 'Una máscara de zorro pintada a mano. Huele a pintura fresca y a humo.']] },
+      { type: 'item', at: [2.2, 0.05, 0.6], shape: 'can', color: 0x6aff9a, kind: 'item', name: 'Spray verde', lines: [['Tú', 'Quedan dos dedos de pintura. Alguien ha escrito en la lata: «para la pared de Powder».']] },
+      { type: 'item', at: [-0.2, 0.79, -0.6], shape: 'paper', color: 0xe8e4d8, kind: 'item', name: 'Dibujo de dos niños', lines: [['Tú', 'Un niño con un palo y una niña con trenzas azules, de la mano, delante de un árbol.'], ['Eco de Ekko', 'Éramos amigos antes de ser enemigos. Eso no se borra con pintura.']] },
+      { type: 'item', at: [1.0, 0.03, 2.0], shape: 'drop', color: 0x9affc0, kind: 'item', name: 'Hoja del árbol que brilla', lines: [['Tú', 'Una hoja que da luz propia, verde, tibia. Cuando la acerco a la cara deja de oírse la risa.']] },
+      { type: 'item', at: [-2.0, 0.05, 0.4], shape: 'can', color: 0x6aff9a, kind: 'item', fake: true, name: 'Spray verde' },
+      { type: 'door', wall: 's', at: [1.0, 0], code: true, kind: 'door', name: 'Trampilla del árbol', focusY: 1.2, tex: 'dark_wooden_planks' }
+    ] }),
+    start: { at: [0, 1.4], yaw: 0, pitch: 0.42 },
+    objective: 'Busca a Ekko en el escondite del árbol',
+    code: '208', codeTitle: 'Trampilla · tres válvulas', codeObjective: 'Abre la trampilla con las guardias de la pizarra',
+    codeFamily: 'Ekko: «Mis guardias, las de Scar y las tuyas. Dos, cero, ocho. Las tuyas son muchas, chispa».',
+    intro: [['Tú', 'Las 03:55. Dentro de un árbol. Hay mesas, sofás, dibujos… y nadie.'], ['Tú', 'La radio está encendida. Repite algo. Con mi voz.']],
+    allFound: [['Tú', 'Máscara, spray, dibujo, hoja. La trampilla: la pizarra dice cuántas guardias hizo cada uno.']],
+    locked: 'Los Desvelados dejaron más cosas para ti.',
+    events: [
+      { on: 't:15', do: 'presence', text: 'Un dardo se clava en la diana. No hay nadie en la sala.' },
+      { on: 'look:radio', do: 'whisper', text: 'TE ESTOY BUSCANDO' },
+      { on: 't:60', do: 'say', lines: [['{p} (comunicador)', 'Ese árbol es seguro. Quédate un rato. Duerme si quieres.']] },
+      { on: 't:90', do: 'say', lines: [['{p} (comunicador)', '¿Dormir? No te he dicho eso. NO te duermas. Si te duermes, vuelves a la merienda.']] },
+      { on: 'lock:cajaEkko', do: 'heartbeat', n: 4 },
+      { on: 'found', do: 'blackout', dur: 3 }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Ekko', delay: 3, msgs: ['Estás en mi árbol. Bienvenida.', 'Mi caja se abre con la hora que nunca deja de ser. Mira el reloj.'] },
+      { on: 'item:1', call: 'Ekko', label: 'Llamada · Ekko', lines: [['Ekko', 'Te oigo respirar. Bien. Escúchame: esa pintura era para tapar algo de la pared. Si apagas la luz, lo verás.'], ['Ekko', 'Y no te asustes. Ya lo sabías.']], missed: [{ msgs: ['Chispa.', 'Coge el comunicador cuando pueda.'] }] }
+    ],
+    exitName: 'Trampilla'
+  };
+
+  // ---------- IX (nuevo) · El escondite de Vi y Powder ----------
+  const GUARIDA = {
+    id: 'guarida', time: '04:25', title: 'El escondite de las hermanas', place: 'Zaun · Encima del bar, detrás de la pared falsa', loading: 'Gateando por el hueco de la pared…',
+    epigraph: '«Detrás de una pared falsa había un cuarto donde dos niñas jugaban a que nadie las encontraría nunca.»',
+    room: Object.assign({}, ZAUN_ROOM, { w: 5.2, d: 4.8, h: 3.0, wallTex: { id: 'plastered_wall_02', s: 1.6, tint: 0x9a8a9a }, floorTex: { id: 'old_wooden_floor_02', s: 1.4 }, ceilTex: { id: 'dark_wooden_planks', s: 1.6, tint: 0x6a5a5a }, fog: 0x0e0810, fogDensity: 0.04, sky: 0x9a7aff, ambient: 0.38, motes: 0xc8a0ff, shadowFrom: 'main', floor: 'parquet', objects: [
+      M2('Chandelier_03', [0, 3.0, 0], { id: 'main', hang: true, s: 0.6, light: { c: 0xffe0d0, i: 1.0, y: -0.6, d: 8, bulb: false } }),
+      M2('old_bed_frame', [-1.6, 0, -1.3], { rot: Math.PI / 2, s: 0.85, tint: 0x8a6a8a }),
+      M2('ArmChair_01', [1.7, 0, 1.4], { rot: -2.4, tint: 0x6a4a6a }), M2('gothic_coffee_table', [0.6, 0, 0.6], { s: 0.9 }),
+      M2('wooden_bookshelf_worn', [2.45, 0, -1.2], { rot: -Math.PI / 2 }),
+      M2('mantel_clock_01', [2.45, 1.02, -1.2], { rot: -Math.PI / 2, solid: false, kind: 'inspect', id: 'relojP', name: 'Reloj del estante', lines: [['Tú', 'Parado a las 04:10. A esa hora se apagó la luz en la clínica de Singed. Lo sé. No sé cómo lo sé.']] }),
+      M2('fancy_picture_frame_01', [-0.3, 1.6, -2.36], { center: true, solid: false, kind: 'inspect', id: 'foto', name: 'Foto de familia', focusY: 1.6, dist: 0.9, lines: [['Tú', 'Vander, Mylo, Claggor, Vi y Powder delante del bar. Éramos cinco, dice alguien detrás de la foto, a lápiz.']] }),
+      { type: 'graffiti', wall: 'e', at: [0, 1.3, 0.8], w: 1.2, text: ['— POWDER, 7 AÑOS', '— VI, 12'], color: '#e8e0f0', size: 60, kind: 'inspect', id: 'alturas', name: 'Rayas de altura en la pared', lines: [['Tú', 'Marcas de altura con fechas. La de Powder se queda en los siete años. Después ya no hay más rayas suyas.']] },
+      { type: 'graffiti', wall: 'w', at: [0, 1.9, 0.9], w: 1.4, hidden: true, text: ['1 HERMANA', 'ME QUEDA'], color: '#25e6ff', size: 80 },
+      WF('s', [1.4, 1.6], 'pacto', 'Pacto pegado en la pared', 'El pacto', ['La contraseña del escondite:', 'cuántos éramos,', 'la edad de Powder', 'y cuántas hermanas me quedan.', '— V.'], { paper: '#e8e0f0', ink: '#3a2a5a', glow: 0.1 }),
+      M2('vintage_oil_lamp', [0.6, 0.45, 0.6], { s: 0.7, solid: false, kind: 'light', name: 'Apagar / encender el candil', light: { c: 0xffd0a0, i: 0.55, y: 0.35, d: 4, bulb: false } }),
+      M2('treasure_chest', [-2.2, 0, 1.6], { rot: Math.PI / 2, s: 0.75, kind: 'lock', id: 'tesoros', name: 'Caja de los tesoros (cuatro cifras)', focusY: 0.5, code: '0410', codeTitle: 'Caja de los tesoros · cuatro válvulas', hint: 'El reloj del estante se paró a las 04:10.', lines: [['Tú', 'Dentro hay una muñeca de trapo con un ojo de botón y el otro cosido con hilo rosa.']] }),
+      { type: 'item', at: [-1.9, 0.45, 1.6], shape: 'doll', color: 0x7aa0ff, kind: 'item', sealed: true, sealedBy: 'tesoros', name: 'Muñeca de Powder', lines: [['Eco de Powder', 'Se llama Vi. Para cuando la de verdad no está.'], ['Tú', 'La aprieto. Suena un latido. Un latido de verdad.']] },
+      { type: 'phone', at: [0.8, 0.46, 0.75], kind: 'phone', name: 'Comunicador' },
+      { type: 'item', at: [-1.6, 0.5, -0.9], shape: 'glove', color: 0xb03a3a, kind: 'item', name: 'Guante pequeño de Vi', lines: [['Tú', 'Un guante de boxeo de niña, rojo, con las costuras rotas.'], ['Eco de Vi', 'Lo usaba para que nadie le hiciera daño a ella. No funcionó.']] },
+      { type: 'item', at: [0.4, 0.46, 0.4], shape: 'box', color: 0xff9ad0, kind: 'item', name: 'Trozo de tarta de cumpleaños', lines: [['Tú', 'Tiene una vela con el número ocho. Nunca la apagaron.']] },
+      { type: 'item', at: [2.45, 0.6, -0.8], shape: 'paper', color: 0xf2f2f2, kind: 'item', name: 'Dibujo de las dos', lines: [['Tú', 'Dos niñas con monos, de la mano. Una dice «Vi». La otra tenía un nombre, pero está tachado y encima pone «JINX».']] },
+      { type: 'item', at: [1.2, 0.04, -1.6], shape: 'egg', color: 0x25e6ff, kind: 'item', name: 'Mono de cuerda', lines: [['Tú', 'Un monito de hojalata con platillos. Le doy cuerda. Toca tres veces y se para mirándome.']] },
+      { type: 'item', at: [-0.8, 0.04, 1.8], shape: 'box', color: 0xff9ad0, kind: 'item', fake: true, name: 'Trozo de tarta de cumpleaños' },
+      { type: 'rug', at: [0.4, 0, 0.4], w: 2.2, d: 1.6, color: 0x4a2a5a },
+      { type: 'door', wall: 's', at: [-0.8, 0], code: true, kind: 'door', name: 'Pared falsa', focusY: 1.2, tex: 'dark_wooden_planks' }
+    ] }),
+    start: { at: [0.2, 1.6], yaw: 0, pitch: 0.42 },
+    objective: 'Recoge lo que guardaban Vi y Powder',
+    code: '571', codeTitle: 'Pared falsa · tres válvulas', codeObjective: 'Sal con la contraseña del pacto',
+    codeHelp: 'El pacto de la pared sur: cuántos eran en la foto, la edad de Powder en las rayas de altura y lo que aparece a oscuras.',
+    codeFamily: 'Vi: «Éramos cinco. Powder tenía siete. Y me queda una hermana. 571. Aunque no lo parezca».',
+    intro: [['Tú', 'Las 04:25. Un cuarto pequeño, escondido detrás de una pared. Huele a ceras de colores y a polvo.'], ['Tú', 'Aquí jugaban dos hermanas. Una de ellas me está mirando desde la foto.']],
+    allFound: [['Tú', 'Guante, tarta, dibujo, mono. El pacto dice cómo salir: cuántos eran, cuántos años tenía Powder y cuántas hermanas quedan.']],
+    locked: 'Aún quedan juguetes de ellas aquí.',
+    events: [
+      { on: 't:20', do: 'presence', text: 'La cama tiene dos hundimientos, uno grande y otro pequeño. El pequeño está caliente.' },
+      { on: 'item:3', do: 'whisper', text: 'TRES' },
+      { on: 't:55', do: 'say', lines: [['Jinx', 'Este era mi sitio favorito del mundo. ¿Sabes por qué? Porque aquí Vi no se iba nunca.']] },
+      { on: 'lock:tesoros', do: 'heartbeat', n: 5 },
+      { on: 'found', do: 'flicker', dur: 2 }
+    ].concat(VOX),
+    phone: [
+      { on: 'start', from: 'Vi', delay: 3, msgs: ['Ese cuarto… No sabía que seguía en pie.', 'El pacto lo escribí yo. No te lo pienses mucho: la respuesta duele, pero es fácil.'] },
+      { on: 'item:1', call: 'Vi', label: 'Llamada · Vi', lines: [['Vi', 'Esa tarta era de su cumpleaños. El último antes de todo.'], ['Vi', 'Cuando salgas, ve a la merienda… y no te sientes. Pase lo que pase. Prométemelo.']], missed: [{ msgs: ['Contesta, por favor.', 'Es importante.'] }] }
+    ],
+    exitName: 'Pared falsa'
+  };
+
+  // orden: después del taller (3) va la fábrica; después de Stillwater, el árbol; después de la clínica, el escondite
+  CHAPTERS.splice(4, 0, FABRICA);
+  CHAPTERS.splice(CHAPTERS.findIndex(c => c.id === 'stillwater') + 1, 0, ARBOL);
+  CHAPTERS.splice(CHAPTERS.findIndex(c => c.id === 'clinica') + 1, 0, GUARIDA);
+  { const NUM = { despacho: 'I', gota: 'II', piltover: 'II', taller: 'III', fabrica: 'IV', stillwater: 'V', arbol: 'VI', clinica: 'VII', guarida: 'VIII', merienda: 'IX' }; CHAPTERS.forEach(c => { if (NUM[c.id]) c.num = NUM[c.id]; }); }
+  GAME.lore.forEach(l => { const m = { 4: 5, 5: 7, 6: 9 }; if (m[l.ch] !== undefined) l.ch = m[l.ch]; });
+  GAME.lore.push(
+    { ch: 4, t: 'Las fosas y el Shimmer', text: 'Las fosas son lo más profundo de Zaun, donde el aire está lleno de humo químico. Allí Silco fabricaba el Shimmer, una droga rosa que hace a la gente más fuerte… y la va consumiendo por dentro.' },
+    { ch: 6, t: 'Los Desvelados', text: 'Los Desvelados (Firelights) son una banda de jóvenes de Zaun liderada por Ekko, que se esconden en un árbol gigante y luminoso. Luchan contra el Shimmer y contra Silco. Ekko y Powder fueron amigos de niños.' },
+    { ch: 8, t: 'Vi y Powder', text: 'Vi y Powder crecieron con Vander en el bar La Última Gota, junto a Mylo y Claggor. Una misión que salió mal lo destruyó todo: Powder se convirtió en Jinx y Vi acabó años en Stillwater.' }
+  );
+
+  // ---------- cinco finales ----------
+  FINAL_CHOICE.text = 'Tres salidas, cielito. La escalera de servicio… la puerta de la merienda, donde está todo el mundo… o puedes volcarme la mesa, si te atreves. ¿Qué haces?';
+  FINAL_CHOICE.options = [{ t: 'La escalera de servicio, oscura y vacía', end: 'escalera' }, { t: 'La puerta de la merienda, donde se oye a {p}', end: 'merienda' }, { t: 'Volcar la mesa y gritar el nombre de Vi', end: 'pelea' }];
+  Object.assign(ENDINGS, {
+    pelea: { title: 'Final: La mesa rota', fx: 'boom', text: ['Vuelcas la mesa. Las tazas estallan contra el suelo. Los invitados de trapo se caen de las sillas.', 'Gritas «¡VI!» con todas tus fuerzas.', 'Jinx se queda quieta. Por un segundo tiene siete años y está a punto de llorar.', 'Luego sonríe. «Vale. Pues jugamos a otra cosa.» Y se apagan todas las luces de Zaun a la vez.'] },
+    despertar: { title: 'Final: Despertar', text: ['Subes la escalera de servicio con la cabeza clara. Cada escalón pesa menos que el anterior.', 'Arriba no hay puerta: hay una luz blanca y el pitido de una máquina.', 'Abres los ojos en una cama de hospital de Piltover. {p} está dormida en la silla, con tu mano entre las suyas.', 'En la mesilla hay una muñeca de trapo que nadie sabe quién ha traído. Le falta un ojo. Sonríe.'] },
+    shimmer: { title: 'Final: Rosa para siempre', fx: 'boom', text: ['Ya no distingues las puertas. Todas son rosas. Todas se ríen.', 'Eliges una. O ella te elige a ti.', 'Jinx te pone una corona de papel y te sienta a su lado. «Ahora ya eres de la familia.»', 'En la clínica de Singed, la máquina de la cama 17 dibuja una línea recta. Nadie viene a apagarla.'] }
+  });
+  GAME.endingFor = k => (state.sanity < 25 ? 'shimmer' : (k === 'escalera' && state.sanity >= 70) ? 'despertar' : k);
+
+  Object.assign(PARTNER_LINES, {
+    fabrica: {
+      ekko: [['Ekko (comunicador)', 'Las fosas. Cuenta los barriles: rosas primero, morados después. Y la última cifra está pintada en la pared; apaga el flexo.']],
+      vi: [['Vi (comunicador)', 'Ahí trabajaba gente que conocía. El capataz usa el número de la 17 para todo. Dos veces, el muy vago.']],
+      jayce: [['Jayce (comunicador)', 'Los barriles están etiquetados por colores. Rosa, morado, y una cifra oculta. Ciencia básica: cuenta.']],
+      silco: [['Silco (comunicador)', 'Mi fábrica. Tres de lo puro, cuatro de lo cortado. El resto lo pintó mi hija en la pared. Apaga la luz.']],
+      mel: [['Mel (comunicador)', 'No respires hondo. La taquilla del capataz repite el número de una paciente. Lo has visto toda la noche.']],
+      caitlyn: [['Caitlyn (comunicador)', 'Pistas: carteles a ambos lados, receta en la mesa. Cuenta los barriles con cuidado: uno está tapado por otro.']]
+    },
+    arbol: {
+      ekko: [['Ekko (comunicador)', 'Mi árbol. La pizarra tiene las guardias: la mía, la de Scar y la tuya. Mi caja: la hora del reloj parado.']],
+      vi: [['Vi (comunicador)', 'El escondite de Ekko. Si hay un reloj parado, esa es su contraseña. Siempre lo ha sido.']],
+      jayce: [['Jayce (comunicador)', 'Ese engranaje dorado es tecnología que no entiendo. La caja se abre con una hora. Busca un reloj.']],
+      silco: [['Silco (comunicador)', 'El nido del chico. Tres números en una pizarra, cuatro en un reloj. Ni siquiera esconden bien.']],
+      mel: [['Mel (comunicador)', 'La radio repite algo con tu voz. Hazle caso: la hora del reloj parado. Y la pizarra para salir.']],
+      caitlyn: [['Caitlyn (comunicador)', 'Pizarra para la trampilla, reloj para la caja. Y apaga el farol: hay algo en la pared este.']]
+    },
+    guarida: {
+      ekko: [['Ekko (comunicador)', 'Ese cuarto… Powder me lo enseñó una vez. El pacto de la pared es de Vi. La caja, la hora del reloj del estante.']],
+      vi: [['Vi (comunicador)', 'Nuestro escondite. Éramos cinco. Powder tenía siete. Lo último lo verás a oscuras. Lo siento.']],
+      jayce: [['Jayce (comunicador)', 'Foto, rayas de altura y un reloj. Todo lo que necesitas está a la vista… menos una cosa: apaga el candil.']],
+      silco: [['Silco (comunicador)', 'El cuarto donde mi hija aún se llamaba Powder. La caja se abre con la hora en que se paró el reloj.']],
+      mel: [['Mel (comunicador)', 'Lee el pacto despacio. Cuántos eran, cuántos años tenía ella, y cuántas hermanas quedan.']],
+      caitlyn: [['Caitlyn (comunicador)', 'Cinco en la foto, siete en la pared. La última cifra solo se ve sin luz. La caja: el reloj del estante.']]
+    }
+  });
+
+  // ---------- llamadas en tiempo real en los capítulos que no tenían ----------
+  {
+    const CALLS = {
+      despacho: { on: 'item:2', call: 'Ekko', label: 'Llamada · Ekko', lines: [['Ekko', '¿Estás despierta? Bien. No te fíes de los relojes de este sitio: todos van a la hora de ella.'], ['Ekko', 'Lee los papeles dos veces. La segunda vez dicen otra cosa.']], missed: [{ msgs: ['Coge el comunicador.', 'No me hagas bajar.'] }] },
+      gota: { on: 'item:1', call: 'Vi', label: 'Llamada · Vi', lines: [['Vi', 'Estás en el bar. En nuestro bar.'], ['Vi', 'Si oyes a Vander reírse en la barra… no le contestes. No es él.']], missed: [{ msgs: ['Contesta.'] }] },
+      piltover: { on: 'item:1', call: 'Caitlyn', label: 'Llamada · Caitlyn', lines: [['Caitlyn', 'Aquí arriba nadie te va a ayudar si dices que vienes de abajo. Habla poco.'], ['Caitlyn', 'Y si ves a una niña de pelo azul en un espejo, no te gires.']], missed: [{ msgs: ['Llámame cuando puedas.'] }] },
+      taller: { on: 'item:2', call: 'Ekko', label: 'Llamada · Ekko', lines: [['Ekko', 'El taller de Jinx tiene trampas. No toques nada que haga tic-tac.'], ['Ekko', '¿Oyes eso? Ella te está escuchando por los altavoces. Habla bajo.']], missed: [{ msgs: ['Shhh. Luego hablamos.'] }] },
+      stillwater: { on: 'item:2', call: 'Vi', label: 'Llamada · Vi', lines: [['Vi', 'Esa celda era la mía. Conté los días en la pared hasta que se me acabó la pared.'], ['Vi', 'Sal antes de que empieces a contarlos tú.']], missed: [{ msgs: ['Por favor, contesta.'] }] },
+      clinica: { on: 'item:2', call: 'Silco', label: 'Llamada · Silco', lines: [['Silco', 'Singed no es tu médico, niña. Es el mío.'], ['Silco', 'Esa cama tiene tu número. Yo de ti no me tumbaría a comprobarlo.']], missed: [{ msgs: ['Haces bien en no contestarme.'] }] },
+      merienda: { on: 'item:1', call: 'Vi', label: 'Llamada · Vi', lines: [['Vi', 'Estás en la merienda. Lo noto por cómo respiras.'], ['Vi', 'Ella te va a ofrecer tres salidas. Una es la buena si llegas con la cabeza clara. Respira antes de elegir.']], missed: [{ msgs: ['No te sientes.', 'No te sientes.', 'NO TE SIENTES.'] }] }
+    };
+    CHAPTERS.forEach(c => { const k = CALLS[c.id]; if (k && !(c.phone || []).some(p => p.call)) (c.phone = c.phone || []).push(k); });
+  }
   const PL = PARTNER_LINES;
   Object.assign(PL.despacho, {
     silco: [['Silco (comunicador)', 'Mi despacho. Lo reconocería con los ojos cerrados: ahí murió una parte de mí y la otra aprendió a mandar. Busca mis cosas. La puerta se abre con mi hora: escucha la tubería.']],
@@ -2123,7 +2347,7 @@ const Events = {
     if (state.screen !== 'game') return;
     const d = ev.do;
     if (d === 'flicker') { level.flick = ev.dur || 1.6; AudioFX.burst(120, 2, 0.4, 0.15); }
-    else if (d === 'blackout') { setLights(false); AudioFX.thud(); setTimeout(() => { if (level && !level.dark) setLights(true); }, (ev.dur || 3) * 1000); }
+    else if (d === 'blackout') { setLights(false); AudioFX.thud(); Torch.blackout = true; setTimeout(() => { Torch.blackout = false; if (level && !level.dark) setLights(true); }, (ev.dur || 3) * 1000); }
     else if (d === 'knock') { AudioFX.knock(ev.n || 3); }
     else if (d === 'slam') { AudioFX.creak ? AudioFX.creak() : AudioFX.knock(1); }
     else if (d === 'voice') { Voice.say(ev.v); }
@@ -2310,7 +2534,7 @@ function interact() {
   const o = interactTarget, C = level.C;
   if (o.kind === 'item') {
     if (o.fake && GAME.perk && GAME.perk.fakeWarn && !o.warned) { o.warned = true; Dlg.start([[GAME.hero.name, GAME.perk.fakeWarn]]); unlock('perk'); return; }
-    if (o.fake) { o.gone = true; o._g.visible = false; AudioFX.laugh(); FX.pulse = 1; FX.flash = 0.3; state.sanity = Math.max(5, state.sanity - 10); state.clock += (GAME.fakePenalty || 180) * D().time; unlock('fooled'); Dlg.start([pick(GAME.fakeLines || [['SISTEMA', 'No era real.']])]); return; }
+    if (o.fake) { o.gone = true; o._g.visible = false; AudioFX.laugh(); FX.pulse = 1; FX.flash = 0.3; state.sanity = Math.max(5, state.sanity - 10); state.clock += (GAME.fakePenalty || 180) * D().time; unlock('fooled'); Scare.go('fake'); Dlg.start([pick(GAME.fakeLines || [['SISTEMA', 'No era real.']])]); return; }
     AudioFX.chime(); AudioFX.pickup && AudioFX.pickup(); FX.pulse = 0.4;
     Dlg.start(o.lines, () => {
       o.gone = true; o._g.visible = false; level.found++; state.collected.push(o.name);
@@ -2387,6 +2611,7 @@ function doInspect(o) {
     Dlg.start(o.lines || [], () => { Phone.trigger('look:' + o.id); Events.trigger('look:' + o.id); if (o.ach) unlock(o.ach); const all = level.objs.filter(x => x.kind === 'inspect').length; if (level.inspected.size >= all && all > 1) unlock('curious'); }, { pos: focusOf(o), dist: o.dist || 0.6 });
 }
 function die() {
+  if (state.screen === 'game' && !die._w) { die._w = 1; Scare.go('death', true); setTimeout(() => { die._w = 2; die(); die._w = 0; }, 900); return; } if (die._w === 1) return;
   releaseLock(); if (PC.open) PC.close(); Read.close(); state.screen = 'dead'; AudioFX.thud(); state.deaths++; unlock('death'); if (state.deaths >= 5) unlock('death5'); persist();
   $('#deadTitle').textContent = GAME.deathTitle; $('#deadLine').textContent = fmt(pick(GAME.deathLines)); show('dead');
 }
@@ -2400,6 +2625,7 @@ function goChapter(i) {
   persist(); AudioFX.thud(); AudioFX.door && AudioFX.door(); startChapter(i);
 }
 function showEnding(key) {
+  if (GAME.endingFor && key !== GAME.timeoutEnding) key = GAME.endingFor(key) || key;
   releaseLock(); if (PC.open) PC.close(); $('#toast').classList.remove('on'); toastT = 0; const E = ENDINGS[key]; state.screen = 'ending';
   if (!state.endings.includes(key)) state.endings.push(key); unlock('fin_' + key); if (state.endings.length >= Object.keys(ENDINGS).length) unlock('all_endings');
   persist();
@@ -2817,7 +3043,7 @@ const Shadows = {
       else { // Thanos: cuando te mueves se acerca; cuando te quedas quieta, retrocede
         if (mag > 0.05) v = input.run ? 0.95 : 0.6; else if (d < 4.5) v = -0.45;
         if (d < 1.8) { state.sanity -= dt * 5; FX.pulse = Math.max(FX.pulse, 0.5); if ((s.hb -= dt) < 0) { AudioFX.heartbeat(0.55); s.hb = 0.8; } }
-        if (d < 1.05) { s.fading = true; state.sanity -= 6; FX.shake = 0.5; AudioFX.thud(); s.line = pick(GAME.thanosNear || ['Un frío enorme te roza la cara. Cuando abres los ojos, ya no está.']); unlock('sombra_cerca'); }
+        if (d < 1.05) { s.fading = true; state.sanity -= 6; FX.shake = 0.5; AudioFX.thud(); s.line = pick(GAME.thanosNear || ['Un frío enorme te roza la cara. Cuando abres los ojos, ya no está.']); unlock('sombra_cerca'); Scare.go('thanos'); }
       }
       if (v && !s.fading) {
         const st = v * dt; let moved = false;
@@ -2836,6 +3062,70 @@ const Shadows = {
     }
   }
 };
+// ---------- Jumpscare al fallar (código, contraseña, objeto falso, cordura a cero) ----------
+const Scare = {
+  el: null, cv: null, t: 0, cd: 0, kind: '',
+  build() {
+    if (this.el) return; const st = document.createElement('style');
+    st.textContent = '#scare{position:fixed;inset:0;z-index:90;display:none;pointer-events:none;background:#000;align-items:center;justify-content:center;overflow:hidden}#scare.on{display:flex}#scare canvas{width:min(100vw,140vh);height:auto;image-rendering:auto;filter:contrast(1.3)}#scare .scl{position:absolute;inset:0;background:radial-gradient(circle,transparent 30%,#000 85%)}#torchHud{position:fixed;left:18px;top:96px;z-index:30;font:600 12px/1.2 system-ui,sans-serif;color:#ffe9b0;letter-spacing:.04em;text-shadow:0 0 6px #000;display:none;opacity:.9}#torchHud.on{display:block}#torchHud b{display:inline-block;width:60px;height:6px;border:1px solid #ffe9b0;margin-left:6px;vertical-align:middle;position:relative}#torchHud i{position:absolute;left:0;top:0;bottom:0;background:#ffe9b0}#torchHud.low i{background:#ff5a3a}';
+    document.head.appendChild(st);
+    this.el = document.createElement('div'); this.el.id = 'scare'; this.cv = document.createElement('canvas'); this.cv.width = 1280; this.cv.height = 720;
+    this.el.appendChild(this.cv); const v = document.createElement('div'); v.className = 'scl'; this.el.appendChild(v); document.body.appendChild(this.el);
+  },
+  draw(k) { // cara deformada pintada a mano: cada vez distinta
+    const c = this.cv.getContext('2d'), W = 1280, H = 720, col = GAME.scareColor || '#ff2a2a';
+    c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
+    for (let i = 0; i < 2600; i++) { c.fillStyle = `rgba(255,255,255,${Math.random() * 0.06})`; c.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
+    const cx = W / 2 + rand(-30, 30), cy = H / 2 + 30, fw = rand(250, 300), fh = rand(330, 380);
+    const g = c.createRadialGradient(cx, cy - 40, 30, cx, cy, fh); g.addColorStop(0, '#d8d2c8'); g.addColorStop(0.55, '#8a8278'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.beginPath(); for (let a = 0; a <= 6.3; a += 0.15) { const r = 1 + rand(-0.05, 0.05); c.lineTo(cx + Math.cos(a) * fw * r, cy + Math.sin(a) * fh * r * (a > 0 && a < 3.14 ? 1.08 : 1)); } c.fill();
+    for (const sx of [-1, 1]) { // ojos hundidos con brillo del color del juego
+      const ex = cx + sx * fw * 0.38, ey = cy - fh * 0.18; c.fillStyle = '#000'; c.beginPath(); c.ellipse(ex, ey, fw * 0.2, fh * 0.15, sx * 0.25, 0, 7); c.fill();
+      const eg = c.createRadialGradient(ex, ey, 1, ex, ey, 26); eg.addColorStop(0, '#fff'); eg.addColorStop(0.25, col); eg.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = eg; c.beginPath(); c.arc(ex + rand(-6, 6), ey + rand(-4, 4), 26, 0, 7); c.fill();
+      c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 3; for (let i = 0; i < 4; i++) { c.beginPath(); c.moveTo(ex + rand(-40, 40), ey + fh * 0.12); c.lineTo(ex + rand(-60, 60), ey + fh * rand(0.3, 0.55)); c.stroke(); }
+    }
+    c.fillStyle = '#050000'; c.beginPath(); const my = cy + fh * 0.42, mw = fw * rand(0.55, 0.75); c.moveTo(cx - mw, my - 10);
+    for (let x = -mw; x <= mw; x += 18) c.lineTo(cx + x, my + (Math.abs(x) < mw * 0.9 ? rand(30, 120) : 0)); for (let x = mw; x >= -mw; x -= 18) c.lineTo(cx + x, my - rand(0, 26)); c.fill();
+    c.fillStyle = '#e8e0d0'; for (let x = -mw + 12; x < mw - 12; x += 22) { c.beginPath(); c.moveTo(cx + x, my - 6); c.lineTo(cx + x + 9, my + rand(16, 34)); c.lineTo(cx + x + 18, my - 6); c.fill(); }
+    c.globalCompositeOperation = 'screen'; c.fillStyle = col; c.globalAlpha = 0.18; c.fillRect(0, 0, W, H); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+    for (let y = 0; y < H; y += 3) { c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(0, y, W, 1); }
+    if (GAME.scareText) { c.font = '700 54px serif'; c.textAlign = 'center'; c.fillStyle = col; c.fillText(pick(GAME.scareText), W / 2, H - 40); }
+  },
+  go(kind, force) {
+    if (!state.settings || state.settings.scares === false) return; const now = performance.now(); if (!force && now < this.cd) return;
+    this.build(); this.kind = kind; this.cd = now + (force ? 2000 : 9000); this.t = force ? 1.0 : 0.75; this.draw(kind);
+    clearInterval(this._iv); let last = now; this._iv = setInterval(() => { const n = performance.now(); this.tick((n - last) / 1000); last = n; if (this.t <= 0) clearInterval(this._iv); }, 30);
+    this.el.classList.add('on'); try { AudioFX.stinger(); AudioFX.hit && (AudioFX.hit(900, 0.6, 0.6, 0.6, 0, 'bandpass', 0.003), AudioFX.hit(140, 1, 0.5, 0.7, 0, 'lowpass', 0.003));
+    AudioFX.tone(880, 'sawtooth', 0.6, 0.12, 0, 220, 0, 3000); } catch (e) {} FX.shake = 1.4; FX.hurt = 1; unlock('susto');
+  },
+  tick(dt) {
+    if (!this.el || this.t <= 0) return;
+    this.t -= dt; const k = Math.max(0, this.t);
+    this.cv.style.transform = `scale(${(1.35 - k * 0.5).toFixed(3)}) translate(${rand(-12, 12)}px,${rand(-10, 10)}px) rotate(${rand(-2, 2)}deg)`;
+    this.el.style.opacity = k < 0.15 ? (k / 0.15).toFixed(2) : 1; if (this.t <= 0) this.el.classList.remove('on');
+  }
+};
+// ---------- Linterna: se enciende sola cuando se va la luz; L para apagarla o encenderla; la batería se gasta ----------
+const Torch = {
+  on: true, bat: 100, blackout: false, hud: null, told: false,
+  ensure() { if (!TORCH) { TORCH = new THREE.SpotLight(0xfff0d8, 0, 9, 0.42, 0.6, 1.6); TORCH.position.set(0.12, -0.12, 0); camera.add(TORCH); TORCH.target.position.set(0, -0.15, -1); camera.add(TORCH.target); if (!camera.parent) scene.add(camera); } },
+  toggle() { if (!this.need()) return; this.on = !this.on; AudioFX.click && AudioFX.click(); SFX.play && SFX.play('metalClick', 0.35, 1.4); },
+  need() { return !!level && (level.dark || this.blackout); },
+  tick(dt) {
+    if (!this.hud) { Scare.build(); this.hud = document.createElement('div'); this.hud.id = 'torchHud'; this.hud.innerHTML = '🔦 Linterna <b><i></i></b> <small>L</small>'; document.body.appendChild(this.hud); }
+    const need = state.screen === 'game' && this.need(); this.hud.classList.toggle('on', need);
+    if (!need) { this.bat = Math.min(100, this.bat + dt * 6); if (TORCH && !level.dark) TORCH.intensity = 0; return; }
+    if (!this.told) { this.told = true; toast('Se ha ido la luz: la linterna se enciende sola. Pulsa L para apagarla o encenderla. Gasta batería.', 5); }
+    this.ensure(); if (this.on) this.bat = Math.max(0, this.bat - dt * 1.1);
+    const base = GAME.torch !== undefined ? GAME.torch : 0.9, low = this.bat < 20;
+    const fl = low ? (Math.random() < 0.12 ? 0.1 : 0.75 + Math.random() * 0.25) : 1;
+    TORCH.intensity = this.on && this.bat > 0 ? base * fl * (0.55 + this.bat / 220) : 0;
+    this.hud.querySelector('i').style.width = this.bat.toFixed(0) + '%'; this.hud.classList.toggle('low', low);
+  }
+};
+addEventListener('keydown', e => { if (e.code === 'KeyL' && state.screen === 'game' && !Keypad.open && !PC.open && !Read.open) { e.preventDefault(); Torch.toggle(); } });
+(() => { const ks = Keypad.submit.bind(Keypad); Keypad.submit = function () { const bad = this.val !== this.code; const r = ks(); if (bad) Scare.go('code'); return r; };
+  const ps = PC.submit.bind(PC); PC.submit = function () { const was = level.pcUnlocked; const r = ps(); if (!was && !level.pcUnlocked && this.tries >= 2) Scare.go('pc'); return r; }; })();
 // ---------- Ratón: volver a capturarlo al cerrar ventanas ----------
 function relock() {
   if (IS_TOUCH || state.screen !== 'game' || state.paused || document.pointerLockElement === gl) return;
@@ -2850,6 +3140,7 @@ function loop() {
   const dt = Math.min(clock.getDelta(), 0.05); T += dt;
   if (state.screen === 'game') {
     if (!state.paused) Phone.update(dt);
+    if (!state.paused) Torch.tick(dt);
     if (!state.paused && !Dlg.active && !Keypad.open && !Call.ringing) { if (zoomHeld) { level.zoomT = (level.zoomT || 0) + dt; if (level.zoomT > 6) unlock('zoom'); } updateGame(dt); }
     else { AudioFX.update(dt, { sanity: state.sanity, playing: true, musicBox: 0.3 }); Amb.update(dt, true); if (!state.paused) { tickClock(dt); drawScreens(dt); } }
     updateFPCamera(dt);

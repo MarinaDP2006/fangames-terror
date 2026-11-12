@@ -405,7 +405,7 @@ body.breathing:after{content:"respira…";position:fixed;left:50%;top:60%;transf
   <button id="btnHelp" aria-label="Ayuda" title="Pedir ayuda a tu pareja (H)">?</button>
   <button id="btnPhone" aria-label="Móvil">📱<b id="phoneBadge" style="display:none">0</b></button>
 </section>
-<div id="hintbar"><span><kbd>🖱</kbd>Mirar</span><span><kbd>E</kbd>Interactuar</span><span><kbd>🖱 dcho.</kbd>Mantén para forzar la vista</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>Caminar</span><span><kbd>⇧</kbd>Correr</span><span id="hintAbil" style="display:none"><kbd>F</kbd>Poder</span><span id="hintPhone"><kbd>Q</kbd>Móvil</span><span id="hintBreath" style="display:none"><kbd>Espacio</kbd>Respirar</span><span><kbd>Esc</kbd>Pausa</span></div>
+<div id="hintbar"><span><kbd>🖱</kbd>Mirar</span><span><kbd>E</kbd>Interactuar</span><span><kbd>🖱 dcho.</kbd>Mantén para forzar la vista</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>Caminar</span><span><kbd>⇧</kbd>Correr</span><span id="hintAbil" style="display:none"><kbd>F</kbd>Poder</span><span id="hintPhone"><kbd>Q</kbd>Móvil</span><span><kbd>L</kbd>Linterna</span><span id="hintBreath" style="display:none"><kbd>Espacio</kbd>Respirar</span><span><kbd>Esc</kbd>Pausa</span></div>
 <div id="cross"></div>
 <div id="clickHint"><kbd>🖱</kbd>Haz clic para mirar</div>
 <div id="prompt"></div>
@@ -1261,6 +1261,35 @@ CHAPTERS.forEach(c => { c.events = (c.events || []).concat([{ on: 't:28', do: 'v
     }
   });
   byId('sanctum') && GAME.achievements.forEach(a => { if (a.id === 'cap_sanctum') a.hint = 'Sal de la biblioteca del Sanctum.'; });
+
+  // ================= v4 · cinco finales, sustos, linterna y llamadas =================
+  GAME.scareColor = '#3aff7a';
+  GAME.scareText = ['ARRODÍLLATE', 'INEVITABLE', '¿ME VES?', 'MORTAL'];
+  Object.assign(GAME.phone.contacts, { 'Heimdall': { icon: '👁️' }, 'Valkiria': { icon: '🗡️' }, 'Mobius': { icon: '⏳' }, 'Loki': { icon: '🐍' } });
+  GAME.achievements.push(
+    { id: 'susto', icon: '😱', name: 'Te ha visto', hint: 'Llévate un susto por fallar.' },
+    { id: 'fin_trato', icon: '🟣', name: 'Final: El trato', hint: 'Ofrécete a Thanos a cambio de Loki.' },
+    { id: 'fin_hermanos', icon: '💚', name: 'Final: Hermanos', hint: 'Llama a Heimdall con la cabeza clara.' }
+  );
+  FINAL_CHOICE.text = '«Pequeña mortal. Tres salidas: la cápsula de escape, a tu espalda… el centro del puente, donde estoy yo… o puedes ofrecerte en su lugar. Elige.»';
+  FINAL_CHOICE.options = [{ t: 'Correr a la cápsula de escape', end: 'capsula' }, { t: 'Correr al centro del puente y llamar a Heimdall', end: 'bifrost' }, { t: 'Arrodillarte y ofrecerte a cambio de Loki', end: 'trato' }];
+  Object.assign(ENDINGS, {
+    trato: { title: 'Final: El trato', fx: 'boom', text: ['Te arrodillas. «Llévame a mí. Déjalo a él.»', 'Thanos se ríe por primera vez en toda la noche. Es un sonido viejo, cansado.', '«Un trato justo.» Suelta a Loki, que cae al suelo tosiendo, vivo.', 'Lo último que ves es a Loki mirándote con una cara que nunca le habías visto: miedo. Por ti. Luego, solo luz morada.'] },
+    hermanos: { title: 'Final: Hermanos', text: ['Corres hacia el centro del puente con la cabeza clara y gritas el nombre de Heimdall como si fuera el tuyo.', 'El Bifrost no te lleva sola. La luz se enreda en Thor y en Loki y os arranca a los tres del suelo.', 'Caéis en Noruega, en la hierba mojada, al amanecer. Thor se ríe. Loki finge que no.', '«Hermano», dice Thor. Loki tarda mucho en contestar. «Hermano.» Y luego, mirándote: «Y tú también, supongo».'] }
+  });
+  GAME.endingFor = k => (k === 'bifrost' && state.sanity >= 70) ? 'hermanos' : k;
+  {
+    const CALLS = {
+      cuarto: { on: 'item:2', call: 'Loki', label: 'Llamada · ¿Loki?', lines: [['Loki', 'Estás en mi cuarto. Qué atrevida. No toques el baúl… o sí, tócalo. Me da igual. (No me da igual.)'], ['Loki', 'Y si ves mi sombra en la pared, no la mires mucho rato. Se pone celosa.']], missed: [{ msgs: ['¿Me cuelgas a MÍ?', '🐍'] }] },
+      trono: { on: 'item:2', call: 'Thor', label: 'Llamada · Thor', lines: [['Thor', '¿Estás en la sala del trono? Mi padre se sentaba ahí a fingir que no nos veía.'], ['Thor', 'Busca lo que está debajo del mural. Siempre escondíamos cosas ahí de pequeños.']], missed: [{ msgs: ['¡Contesta, amiga!', '⚡'] }] },
+      bifrost: { on: 'item:2', call: 'Heimdall', label: 'Llamada · Heimdall', lines: [['Heimdall', 'Te veo. Veo a todo el mundo. Pero a ti te veo dos veces, y eso no me había pasado nunca.'], ['Heimdall', 'Cuando llegue el final, llama mi nombre desde el centro. Y llega con la mente en calma.']], missed: [{ msgs: ['Te sigo viendo.'] }] },
+      nuevayork: { on: 'item:2', call: 'Valkiria', label: 'Llamada · Valkiria', lines: [['Valkiria', '¿Nueva York? Ahí tiraron a Loki por una ventana. Bueno, lo tiró el verde.'], ['Valkiria', 'Si notas que alguien te sigue por el ático, no corras. Bebe algo. Funciona.']], missed: [{ msgs: ['Te dejo un mensaje de voz borracho luego.'] }] },
+      sanctum: { on: 'item:2', call: 'Mobius', label: 'Llamada · Mobius', lines: [['Mobius', 'Hola, hola. Te llamo desde fuera del tiempo, así que no tengo mucho.'], ['Mobius', 'En ese sanctum los relojes van hacia atrás. Si ves tu propia sombra adelantarse, déjala pasar.']], missed: [{ msgs: ['Llamada perdida… en el tiempo. Je.'] }] },
+      sakaar: { on: 'item:2', call: 'Valkiria', label: 'Llamada · Valkiria', lines: [['Valkiria', 'Sakaar. Odio este sitio. Aquí me vendieron. Aquí vendí yo a otros.'], ['Valkiria', 'No te subas a la arena. Pase lo que pase, no te subas a la arena.']], missed: [{ msgs: ['Contesta.'] }] },
+      tva: { on: 'item:2', call: 'Mobius', label: 'Llamada · Mobius', lines: [['Mobius', 'Estás en mi oficina. Bonita, ¿eh? No toques mis motos de agua.'], ['Mobius', 'Ese expediente con tu nombre… no lo leas entero. Algunas variantes no deberían conocer su final.']], missed: [{ msgs: ['Te espero en la cafetería. Hay ensalada de lima.'] }] }
+    };
+    CHAPTERS.forEach(c => { const k = CALLS[c.id]; if (k && !(c.phone || []).some(p => p.call)) (c.phone = c.phone || []).push(k); });
+  }
 
   // ---------- líneas de cada pareja ----------
   const PL = PARTNER_LINES;
@@ -2369,7 +2398,7 @@ const Events = {
     if (state.screen !== 'game') return;
     const d = ev.do;
     if (d === 'flicker') { level.flick = ev.dur || 1.6; AudioFX.burst(120, 2, 0.4, 0.15); }
-    else if (d === 'blackout') { setLights(false); AudioFX.thud(); setTimeout(() => { if (level && !level.dark) setLights(true); }, (ev.dur || 3) * 1000); }
+    else if (d === 'blackout') { setLights(false); AudioFX.thud(); Torch.blackout = true; setTimeout(() => { Torch.blackout = false; if (level && !level.dark) setLights(true); }, (ev.dur || 3) * 1000); }
     else if (d === 'knock') { AudioFX.knock(ev.n || 3); }
     else if (d === 'slam') { AudioFX.creak ? AudioFX.creak() : AudioFX.knock(1); }
     else if (d === 'voice') { Voice.say(ev.v); }
@@ -2556,7 +2585,7 @@ function interact() {
   const o = interactTarget, C = level.C;
   if (o.kind === 'item') {
     if (o.fake && GAME.perk && GAME.perk.fakeWarn && !o.warned) { o.warned = true; Dlg.start([[GAME.hero.name, GAME.perk.fakeWarn]]); unlock('perk'); return; }
-    if (o.fake) { o.gone = true; o._g.visible = false; AudioFX.laugh(); FX.pulse = 1; FX.flash = 0.3; state.sanity = Math.max(5, state.sanity - 10); state.clock += (GAME.fakePenalty || 180) * D().time; unlock('fooled'); Dlg.start([pick(GAME.fakeLines || [['SISTEMA', 'No era real.']])]); return; }
+    if (o.fake) { o.gone = true; o._g.visible = false; AudioFX.laugh(); FX.pulse = 1; FX.flash = 0.3; state.sanity = Math.max(5, state.sanity - 10); state.clock += (GAME.fakePenalty || 180) * D().time; unlock('fooled'); Scare.go('fake'); Dlg.start([pick(GAME.fakeLines || [['SISTEMA', 'No era real.']])]); return; }
     AudioFX.chime(); AudioFX.pickup && AudioFX.pickup(); FX.pulse = 0.4;
     Dlg.start(o.lines, () => {
       o.gone = true; o._g.visible = false; level.found++; state.collected.push(o.name);
@@ -2633,6 +2662,7 @@ function doInspect(o) {
     Dlg.start(o.lines || [], () => { Phone.trigger('look:' + o.id); Events.trigger('look:' + o.id); if (o.ach) unlock(o.ach); const all = level.objs.filter(x => x.kind === 'inspect').length; if (level.inspected.size >= all && all > 1) unlock('curious'); }, { pos: focusOf(o), dist: o.dist || 0.6 });
 }
 function die() {
+  if (state.screen === 'game' && !die._w) { die._w = 1; Scare.go('death', true); setTimeout(() => { die._w = 2; die(); die._w = 0; }, 900); return; } if (die._w === 1) return;
   releaseLock(); if (PC.open) PC.close(); Read.close(); state.screen = 'dead'; AudioFX.thud(); state.deaths++; unlock('death'); if (state.deaths >= 5) unlock('death5'); persist();
   $('#deadTitle').textContent = GAME.deathTitle; $('#deadLine').textContent = fmt(pick(GAME.deathLines)); show('dead');
 }
@@ -2646,6 +2676,7 @@ function goChapter(i) {
   persist(); AudioFX.thud(); AudioFX.door && AudioFX.door(); startChapter(i);
 }
 function showEnding(key) {
+  if (GAME.endingFor && key !== GAME.timeoutEnding) key = GAME.endingFor(key) || key;
   releaseLock(); if (PC.open) PC.close(); $('#toast').classList.remove('on'); toastT = 0; const E = ENDINGS[key]; state.screen = 'ending';
   if (!state.endings.includes(key)) state.endings.push(key); unlock('fin_' + key); if (state.endings.length >= Object.keys(ENDINGS).length) unlock('all_endings');
   persist();
@@ -3063,7 +3094,7 @@ const Shadows = {
       else { // Thanos: cuando te mueves se acerca; cuando te quedas quieta, retrocede
         if (mag > 0.05) v = input.run ? 0.95 : 0.6; else if (d < 4.5) v = -0.45;
         if (d < 1.8) { state.sanity -= dt * 5; FX.pulse = Math.max(FX.pulse, 0.5); if ((s.hb -= dt) < 0) { AudioFX.heartbeat(0.55); s.hb = 0.8; } }
-        if (d < 1.05) { s.fading = true; state.sanity -= 6; FX.shake = 0.5; AudioFX.thud(); s.line = pick(GAME.thanosNear || ['Un frío enorme te roza la cara. Cuando abres los ojos, ya no está.']); unlock('sombra_cerca'); }
+        if (d < 1.05) { s.fading = true; state.sanity -= 6; FX.shake = 0.5; AudioFX.thud(); s.line = pick(GAME.thanosNear || ['Un frío enorme te roza la cara. Cuando abres los ojos, ya no está.']); unlock('sombra_cerca'); Scare.go('thanos'); }
       }
       if (v && !s.fading) {
         const st = v * dt; let moved = false;
@@ -3082,6 +3113,70 @@ const Shadows = {
     }
   }
 };
+// ---------- Jumpscare al fallar (código, contraseña, objeto falso, cordura a cero) ----------
+const Scare = {
+  el: null, cv: null, t: 0, cd: 0, kind: '',
+  build() {
+    if (this.el) return; const st = document.createElement('style');
+    st.textContent = '#scare{position:fixed;inset:0;z-index:90;display:none;pointer-events:none;background:#000;align-items:center;justify-content:center;overflow:hidden}#scare.on{display:flex}#scare canvas{width:min(100vw,140vh);height:auto;image-rendering:auto;filter:contrast(1.3)}#scare .scl{position:absolute;inset:0;background:radial-gradient(circle,transparent 30%,#000 85%)}#torchHud{position:fixed;left:18px;top:96px;z-index:30;font:600 12px/1.2 system-ui,sans-serif;color:#ffe9b0;letter-spacing:.04em;text-shadow:0 0 6px #000;display:none;opacity:.9}#torchHud.on{display:block}#torchHud b{display:inline-block;width:60px;height:6px;border:1px solid #ffe9b0;margin-left:6px;vertical-align:middle;position:relative}#torchHud i{position:absolute;left:0;top:0;bottom:0;background:#ffe9b0}#torchHud.low i{background:#ff5a3a}';
+    document.head.appendChild(st);
+    this.el = document.createElement('div'); this.el.id = 'scare'; this.cv = document.createElement('canvas'); this.cv.width = 1280; this.cv.height = 720;
+    this.el.appendChild(this.cv); const v = document.createElement('div'); v.className = 'scl'; this.el.appendChild(v); document.body.appendChild(this.el);
+  },
+  draw(k) { // cara deformada pintada a mano: cada vez distinta
+    const c = this.cv.getContext('2d'), W = 1280, H = 720, col = GAME.scareColor || '#ff2a2a';
+    c.fillStyle = '#000'; c.fillRect(0, 0, W, H);
+    for (let i = 0; i < 2600; i++) { c.fillStyle = `rgba(255,255,255,${Math.random() * 0.06})`; c.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
+    const cx = W / 2 + rand(-30, 30), cy = H / 2 + 30, fw = rand(250, 300), fh = rand(330, 380);
+    const g = c.createRadialGradient(cx, cy - 40, 30, cx, cy, fh); g.addColorStop(0, '#d8d2c8'); g.addColorStop(0.55, '#8a8278'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.beginPath(); for (let a = 0; a <= 6.3; a += 0.15) { const r = 1 + rand(-0.05, 0.05); c.lineTo(cx + Math.cos(a) * fw * r, cy + Math.sin(a) * fh * r * (a > 0 && a < 3.14 ? 1.08 : 1)); } c.fill();
+    for (const sx of [-1, 1]) { // ojos hundidos con brillo del color del juego
+      const ex = cx + sx * fw * 0.38, ey = cy - fh * 0.18; c.fillStyle = '#000'; c.beginPath(); c.ellipse(ex, ey, fw * 0.2, fh * 0.15, sx * 0.25, 0, 7); c.fill();
+      const eg = c.createRadialGradient(ex, ey, 1, ex, ey, 26); eg.addColorStop(0, '#fff'); eg.addColorStop(0.25, col); eg.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = eg; c.beginPath(); c.arc(ex + rand(-6, 6), ey + rand(-4, 4), 26, 0, 7); c.fill();
+      c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 3; for (let i = 0; i < 4; i++) { c.beginPath(); c.moveTo(ex + rand(-40, 40), ey + fh * 0.12); c.lineTo(ex + rand(-60, 60), ey + fh * rand(0.3, 0.55)); c.stroke(); }
+    }
+    c.fillStyle = '#050000'; c.beginPath(); const my = cy + fh * 0.42, mw = fw * rand(0.55, 0.75); c.moveTo(cx - mw, my - 10);
+    for (let x = -mw; x <= mw; x += 18) c.lineTo(cx + x, my + (Math.abs(x) < mw * 0.9 ? rand(30, 120) : 0)); for (let x = mw; x >= -mw; x -= 18) c.lineTo(cx + x, my - rand(0, 26)); c.fill();
+    c.fillStyle = '#e8e0d0'; for (let x = -mw + 12; x < mw - 12; x += 22) { c.beginPath(); c.moveTo(cx + x, my - 6); c.lineTo(cx + x + 9, my + rand(16, 34)); c.lineTo(cx + x + 18, my - 6); c.fill(); }
+    c.globalCompositeOperation = 'screen'; c.fillStyle = col; c.globalAlpha = 0.18; c.fillRect(0, 0, W, H); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
+    for (let y = 0; y < H; y += 3) { c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(0, y, W, 1); }
+    if (GAME.scareText) { c.font = '700 54px serif'; c.textAlign = 'center'; c.fillStyle = col; c.fillText(pick(GAME.scareText), W / 2, H - 40); }
+  },
+  go(kind, force) {
+    if (!state.settings || state.settings.scares === false) return; const now = performance.now(); if (!force && now < this.cd) return;
+    this.build(); this.kind = kind; this.cd = now + (force ? 2000 : 9000); this.t = force ? 1.0 : 0.75; this.draw(kind);
+    clearInterval(this._iv); let last = now; this._iv = setInterval(() => { const n = performance.now(); this.tick((n - last) / 1000); last = n; if (this.t <= 0) clearInterval(this._iv); }, 30);
+    this.el.classList.add('on'); try { AudioFX.stinger(); AudioFX.hit && (AudioFX.hit(900, 0.6, 0.6, 0.6, 0, 'bandpass', 0.003), AudioFX.hit(140, 1, 0.5, 0.7, 0, 'lowpass', 0.003));
+    AudioFX.tone(880, 'sawtooth', 0.6, 0.12, 0, 220, 0, 3000); } catch (e) {} FX.shake = 1.4; FX.hurt = 1; unlock('susto');
+  },
+  tick(dt) {
+    if (!this.el || this.t <= 0) return;
+    this.t -= dt; const k = Math.max(0, this.t);
+    this.cv.style.transform = `scale(${(1.35 - k * 0.5).toFixed(3)}) translate(${rand(-12, 12)}px,${rand(-10, 10)}px) rotate(${rand(-2, 2)}deg)`;
+    this.el.style.opacity = k < 0.15 ? (k / 0.15).toFixed(2) : 1; if (this.t <= 0) this.el.classList.remove('on');
+  }
+};
+// ---------- Linterna: se enciende sola cuando se va la luz; L para apagarla o encenderla; la batería se gasta ----------
+const Torch = {
+  on: true, bat: 100, blackout: false, hud: null, told: false,
+  ensure() { if (!TORCH) { TORCH = new THREE.SpotLight(0xfff0d8, 0, 9, 0.42, 0.6, 1.6); TORCH.position.set(0.12, -0.12, 0); camera.add(TORCH); TORCH.target.position.set(0, -0.15, -1); camera.add(TORCH.target); if (!camera.parent) scene.add(camera); } },
+  toggle() { if (!this.need()) return; this.on = !this.on; AudioFX.click && AudioFX.click(); SFX.play && SFX.play('metalClick', 0.35, 1.4); },
+  need() { return !!level && (level.dark || this.blackout); },
+  tick(dt) {
+    if (!this.hud) { Scare.build(); this.hud = document.createElement('div'); this.hud.id = 'torchHud'; this.hud.innerHTML = '🔦 Linterna <b><i></i></b> <small>L</small>'; document.body.appendChild(this.hud); }
+    const need = state.screen === 'game' && this.need(); this.hud.classList.toggle('on', need);
+    if (!need) { this.bat = Math.min(100, this.bat + dt * 6); if (TORCH && !level.dark) TORCH.intensity = 0; return; }
+    if (!this.told) { this.told = true; toast('Se ha ido la luz: la linterna se enciende sola. Pulsa L para apagarla o encenderla. Gasta batería.', 5); }
+    this.ensure(); if (this.on) this.bat = Math.max(0, this.bat - dt * 1.1);
+    const base = GAME.torch !== undefined ? GAME.torch : 0.9, low = this.bat < 20;
+    const fl = low ? (Math.random() < 0.12 ? 0.1 : 0.75 + Math.random() * 0.25) : 1;
+    TORCH.intensity = this.on && this.bat > 0 ? base * fl * (0.55 + this.bat / 220) : 0;
+    this.hud.querySelector('i').style.width = this.bat.toFixed(0) + '%'; this.hud.classList.toggle('low', low);
+  }
+};
+addEventListener('keydown', e => { if (e.code === 'KeyL' && state.screen === 'game' && !Keypad.open && !PC.open && !Read.open) { e.preventDefault(); Torch.toggle(); } });
+(() => { const ks = Keypad.submit.bind(Keypad); Keypad.submit = function () { const bad = this.val !== this.code; const r = ks(); if (bad) Scare.go('code'); return r; };
+  const ps = PC.submit.bind(PC); PC.submit = function () { const was = level.pcUnlocked; const r = ps(); if (!was && !level.pcUnlocked && this.tries >= 2) Scare.go('pc'); return r; }; })();
 // ---------- Ratón: volver a capturarlo al cerrar ventanas ----------
 function relock() {
   if (IS_TOUCH || state.screen !== 'game' || state.paused || document.pointerLockElement === gl) return;
@@ -3096,6 +3191,7 @@ function loop() {
   const dt = Math.min(clock.getDelta(), 0.05); T += dt;
   if (state.screen === 'game') {
     if (!state.paused) Phone.update(dt);
+    if (!state.paused) Torch.tick(dt);
     if (!state.paused && !Dlg.active && !Keypad.open && !Call.ringing) { if (zoomHeld) { level.zoomT = (level.zoomT || 0) + dt; if (level.zoomT > 6) unlock('zoom'); } updateGame(dt); }
     else { AudioFX.update(dt, { sanity: state.sanity, playing: true, musicBox: 0.3 }); Amb.update(dt, true); if (!state.paused) { tickClock(dt); drawScreens(dt); } }
     updateFPCamera(dt);
